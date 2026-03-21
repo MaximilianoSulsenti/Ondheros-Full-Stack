@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { useAuth } from "../Context/AuthContext";
-import { useLocation , useNavigate } from "react-router-dom"; 
+import { useLocation, useNavigate } from "react-router-dom";
 import "./AuthPages.css";
 
 export default function AuthPages() {
@@ -22,8 +23,11 @@ export default function AuthPages() {
 
   const redirectTo = location.state?.from || "/";
 
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setError(""); // Limpiar error al escribir
+    setSuccess("");
   };
 
   const validate = () => {
@@ -36,10 +40,10 @@ export default function AuthPages() {
     return null;
   };
 
-  const handleSubmit = async (e) => {
-    
-    const { login, register } = useAuth();
 
+  const { login, register } = useAuth();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -49,23 +53,19 @@ export default function AuthPages() {
       setError(validationError);
       return;
     }
-    
-      setLoading(true);
-
+    setLoading(true);
     try {
       if (mode === "login") {
         const result = await login(form.email, form.password);
-        if (result.ok) {
-          setError (result.error);
+        if (!result.ok) {
+          setError(result.error);
           return;
-        } 
+        }
         setSuccess("Login exitoso");
-
         setTimeout(() => {
           navigate(redirectTo, { replace: true });
         }, 800);
       }
-
       if (mode === "register") {
         const result = await register(form);
         if (!result.ok) {
@@ -73,9 +73,11 @@ export default function AuthPages() {
           return;
         }
         setSuccess("Usuario registrado correctamente");
-        setMode("login"); // volver a login después de registrarse
+        setTimeout(() => {
+          setMode("login");
+          setSuccess("");
+        }, 1200);
       }
-
     } catch (err) {
       setError("Error de conexión con el servidor");
     } finally {
@@ -90,10 +92,12 @@ export default function AuthPages() {
           {mode === "login" ? "Iniciar sesión" : "Registrarse"}
         </h1>
 
-        {error && <div className="auth-error">{error}</div>}
-        {success && <div className="auth-success">{success}</div>}
 
-        <form onSubmit={handleSubmit}>
+        {error && <div className="auth-error" role="alert">{error}</div>}
+        {success && <div className="auth-success" role="status">{success}</div>}
+
+
+        <form onSubmit={handleSubmit} autoComplete="off">
 
           <div className={`form-anim ${mode === "register" ? "show" : "hide"}`}>
             {mode === "register" && (
@@ -105,24 +109,40 @@ export default function AuthPages() {
             )}
           </div>
 
-          <input type="email" name="email" placeholder="Email" onChange={handleChange} className="input-auth" />
-          <input type="password" name="password" placeholder="Contraseña" onChange={handleChange} className="input-auth" />
+
+          <input type="email" name="email" placeholder="Email" onChange={handleChange} className="input-auth" autoComplete="username" />
+          <input type="password" name="password" placeholder="Contraseña" onChange={handleChange} className="input-auth" autoComplete={mode === "login" ? "current-password" : "new-password"} />
 
           <button type="submit" className="boton-auth" disabled={loading}>
             {loading ? <span className="loader"></span> : (mode === "login" ? "Ingresar" : "Crear cuenta")}
           </button>
         </form>
 
+
         <div className="toggle-auth">
           {mode === "login" ? (
             <p>
               ¿No tenés cuenta?
-              <button onClick={() => setMode("register")}>Registrate</button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("register");
+                  setError("");
+                  setSuccess("");
+                }}
+              >Registrate</button>
             </p>
           ) : (
             <p>
               ¿Ya tenés cuenta?
-              <button onClick={() => setMode("login")}>Iniciar sesión</button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("login");
+                  setError("");
+                  setSuccess("");
+                }}
+              >Iniciar sesión</button>
             </p>
           )}
         </div>

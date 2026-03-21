@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect } from "react";
 
+import { createContext, useContext, useState, useEffect } from "react";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -9,35 +9,60 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
-
     if (storedUser && token) {
       setUser(JSON.parse(storedUser));
       setIsAuthenticated(true);
     }
   }, []);
 
-  // 🔐 LOGIN MOCK
+  // LOGIN REAL
   const login = async (email, password) => {
-    // ⚠️ MOCK FRONT (después se conecta al backend)
-    const mockUser = {
-      id: 1,
-      first_name: "Maxi",
-      email,
-      role: email.includes("admin") ? "admin" : "user" // mock role
-    };
-
-    localStorage.setItem("token", "fake-jwt-token");
-    localStorage.setItem("user", JSON.stringify(mockUser));
-
-    setUser(mockUser);
-    setIsAuthenticated(true);
-
-    return { ok: true };
+    try {
+      const res = await fetch("http://localhost:8080/api/sessions/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        return { ok: false, error: "Respuesta inválida del servidor" };
+      }
+      if (!res.ok) {
+        return { ok: false, error: data?.message || data?.error || "Credenciales inválidas" };
+      }
+      if (data.token) localStorage.setItem("token", data.token);
+      if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+      setUser(data.user);
+      setIsAuthenticated(true);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: "No se pudo conectar con el servidor" };
+    }
   };
 
-  // 🧾 REGISTER MOCK
-  const register = async (data) => {
-    return { ok: true };
+  // REGISTER REAL
+  const register = async (form) => {
+    try {
+      const res = await fetch("http://localhost:8080/api/users/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
+      });
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        return { ok: false, error: "Respuesta inválida del servidor" };
+      }
+      if (!res.ok) {
+        return { ok: false, error: data?.message || data?.error || "Error al registrar" };
+      }
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: "No se pudo conectar con el servidor" };
+    }
   };
 
   const logout = () => {
@@ -45,16 +70,11 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
     setUser(null);
     setIsAuthenticated(false);
+    // Opcional: llamar a /api/sessions/logout si quieres cerrar sesión en backend
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      login,
-      register,
-      logout
-    }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
