@@ -1,0 +1,59 @@
+<h1>Productos</h1>
+
+<!-- BOTÓN PARA VER CARRITO -->
+<div style="text-align:right; margin-bottom:20px;">
+    <a href="/carts/{{cartId}}" 
+       style="padding:10px 15px; background:#007bff; color:#fff; border-radius:5px; text-decoration:none;">
+       🛒 Ver mi carrito
+    </a>
+</div>
+
+<div style="display:flex; flex-wrap:wrap; gap:20px;">
+    {{#each products}}
+    <div style="
+        border:1px solid #ccc;
+        border-radius:8px;
+        padding:15px;
+        width:200px;
+        text-align:center;
+        background:#fafafa;
+    ">
+        <h3>{{this.nombre}}</h3>
+        <p>{{this.descripcion}}</p>
+        <p><strong>${{this.precio}}</strong></p>
+        <button onclick="addToCart('{{this._id}}')">
+            Agregar al carrito
+        </button>
+    </div>
+    {{/each}}
+</div>
+
+<br>
+
+<div style="margin-top:20px; text-align:center;">
+    {{#if hasPrevPage}}
+        <a href="{{prevLink}}">⬅ Página anterior</a>
+    {{/if}}
+
+    <span style="margin:0 10px;">Página {{page}} de {{totalPages}}</span>
+
+    {{#if hasNextPage}}
+        <a href="{{nextLink}}">Página siguiente ➡</a>
+    {{/if}}
+</div>
+
+
+<script>
+
+const cartId = "{{cartId}}";
+
+// Llama al endpoint de agregar producto al carrito
+async function addToCart(productId) {
+    const res = await fetch(`/api/carts/${cartId}/product/${productId}`, {
+        method: "POST"
+    });
+
+    const data = await res.json();
+    alert("Producto agregado al carrito");
+}
+</script>
