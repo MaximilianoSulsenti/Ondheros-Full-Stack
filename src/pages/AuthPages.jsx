@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../Context/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./AuthPages.css";
@@ -18,11 +18,16 @@ export default function AuthPages() {
     password: ""
   });
 
+  // Forgot password modal
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotMsg, setForgotMsg] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate();
 
   const redirectTo = location.state?.from || "/";
-
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -39,7 +44,6 @@ export default function AuthPages() {
     }
     return null;
   };
-
 
   const { login, register } = useAuth();
 
@@ -85,6 +89,35 @@ export default function AuthPages() {
     }
   };
 
+  // Forgot password handler
+  const handleForgot = async (e) => {
+    e.preventDefault();
+    setForgotMsg("");
+    setForgotLoading(true);
+    try {
+      const res = await fetch("http://localhost:8080/api/password/forgot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setForgotMsg("Si el email existe, recibirás instrucciones para recuperar tu contraseña.");
+      } else {
+        setForgotMsg(data.error || "No se pudo enviar el email de recuperación");
+      }
+    } catch {
+      setForgotMsg("Error de conexión");
+    } finally {
+      setForgotLoading(false);
+      setTimeout(() => {
+        setForgotMsg("");
+        setShowForgot(false);
+        setForgotEmail("");
+      }, 3500);
+    }
+  };
+
   return (
     <div className="contenedor-auth">
       <div className={`form-auth ${mode === "register" ? "register" : "login"}`}>
@@ -92,13 +125,10 @@ export default function AuthPages() {
           {mode === "login" ? "Iniciar sesión" : "Registrarse"}
         </h1>
 
-
         {error && <div className="auth-error" role="alert">{error}</div>}
         {success && <div className="auth-success" role="status">{success}</div>}
 
-
         <form onSubmit={handleSubmit} autoComplete="off">
-
           <div className={`form-anim ${mode === "register" ? "show" : "hide"}`}>
             {mode === "register" && (
               <>
@@ -108,16 +138,19 @@ export default function AuthPages() {
               </>
             )}
           </div>
-
-
           <input type="email" name="email" placeholder="Email" onChange={handleChange} className="input-auth" autoComplete="username" />
           <input type="password" name="password" placeholder="Contraseña" onChange={handleChange} className="input-auth" autoComplete={mode === "login" ? "current-password" : "new-password"} />
-
+          {mode === "login" && (
+            <div style={{ textAlign: "right", marginTop: "-8px", marginBottom: "8px" }}>
+              <button type="button" className="link-forgot" style={{ background: "none", border: "none", color: "#6366f1", fontWeight: 600, cursor: "pointer", fontSize: "0.98rem", padding: 0 }} onClick={() => setShowForgot(true)}>
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
+          )}
           <button type="submit" className="boton-auth" disabled={loading}>
             {loading ? <span className="loader"></span> : (mode === "login" ? "Ingresar" : "Crear cuenta")}
           </button>
         </form>
-
 
         <div className="toggle-auth">
           {mode === "login" ? (
@@ -147,6 +180,24 @@ export default function AuthPages() {
           )}
         </div>
       </div>
+
+      {/* Modal Olvidaste tu contraseña */}
+      {showForgot && (
+        <div className="profile-modal-overlay profile-modal-fadein">
+          <div className="profile-modal">
+            <form className="profile-edit-form" onSubmit={handleForgot}>
+              <label>Ingresa tu email para recuperar tu contraseña:
+                <input type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} required />
+              </label>
+              <div className="profile-edit-actions">
+                <button type="submit" className="profile-save-btn" disabled={forgotLoading}>{forgotLoading ? "Enviando..." : "Enviar"}</button>
+                <button type="button" className="profile-cancel-btn" onClick={() => setShowForgot(false)} disabled={forgotLoading}>Cancelar</button>
+              </div>
+              {forgotMsg && <div className="profile-save-msg">{forgotMsg}</div>}
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -31,4 +31,9 @@ export default class UsersRepository {
   countUsers = async () => {
     return await this.dao.countUsers();
   };
+
+  // Nuevo método para obtener usuarios paginados
+  getPaginated = async (params) => {
+    return await this.dao.getPaginated(params);
+  };
 }

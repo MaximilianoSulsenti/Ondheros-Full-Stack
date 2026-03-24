@@ -10,5 +10,7 @@ export default class UserResponseDTO {
     this.role = user.role;
     this.cart = user.cart;
     this.img = user.img || null;
+    this.createdAt = user.createdAt;
+    this.updatedAt = user.updatedAt;
   }
 }

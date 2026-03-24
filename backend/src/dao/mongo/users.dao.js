@@ -31,4 +31,25 @@ export default class UsersDAO {
     countUsers = async () => {
         return userModel.countDocuments();
     };
+
+    // Método para obtener usuarios paginados
+    getPaginated = async ({ page = 1, limit = 10, search = "", role }) => {
+        const query = {};
+        if (search) {
+            query.$or = [
+                { first_name: { $regex: search, $options: "i" } },
+                { last_name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } }
+            ];
+        }
+        if (role) {
+            query.role = role;
+        }
+        const skip = (page - 1) * limit;
+        const [users, total] = await Promise.all([
+            userModel.find(query).skip(skip).limit(limit).lean(),
+            userModel.countDocuments(query)
+        ]);
+        return { users, total };
+    };
 }

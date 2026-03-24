@@ -1,4 +1,3 @@
-
 export default class UserService {
     constructor(repository) {
         this.repository = repository;
@@ -33,5 +32,9 @@ export default class UserService {
     // Nuevo método para contar usuarios
     async countUsers() {
         return await this.repository.countUsers();
+    }
+
+    async getPaginated(params) {
+        return await this.repository.getPaginated(params);
     }
 }

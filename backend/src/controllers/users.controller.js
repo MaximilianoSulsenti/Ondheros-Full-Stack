@@ -4,8 +4,8 @@ import CreateUserDTO from "../dto/createUser.dto.js";
 import UpdateUserDTO from "../dto/updateUser.dto.js";
 import AdminUpdateUserDTO from "../dto/adminUpdateUser.dto.js";
 import UserResponseDTO from "../dto/userResponse.dto.js";
-import {createHash} from "../utils/hash.js"
-
+import { createHash, isValidPassword } from "../utils/hash.js"
+   
 export default class UsersController{
     constructor(userService){
         this.userService = userService;
@@ -13,11 +13,21 @@ export default class UsersController{
 
     getUsers =  async (req, res) => {
         try {
-            const users = await this.userService.getUsers();
-
-            const usersDTO = users.map(user => new UserResponseDTO(user));
-
-            res.status(200).json({ status: "success", payload: usersDTO });
+            const { page = 1, limit = 10, search = "", role } = req.query;
+            const result = await this.userService.getPaginated({
+                page: Number(page),
+                limit: Number(limit),
+                search,
+                role
+            });
+            const usersDTO = result.users.map(user => new UserResponseDTO(user));
+            res.status(200).json({
+                status: "success",
+                payload: usersDTO,
+                total: result.total,
+                page: Number(page),
+                totalPages: Math.ceil(result.total / limit)
+            });
         } catch (error) {
             res.status(500).json({ status: "error", error: error.message });
         }
@@ -99,5 +109,58 @@ export default class UsersController{
             res.status(500).json({ error: "Error al contar usuarios" });
         }
     }
+
+    // Cambiar email
+    changeEmail = async (req, res) => {
+        try {
+            const { newEmail, currentPassword } = req.body;
+            const { uid } = req.params;
+            const user = await this.userService.getUserById(uid);
+
+            if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+            if (!isValidPassword(currentPassword, user.password)) {
+                return res.status(400).json({ error: "Contraseña actual incorrecta" });
+            }
+
+            const emailExists = await this.userService.getByEmail(newEmail);
+            if (emailExists) {
+                return res.status(400).json({ error: "El email ya está en uso" });
+            }
+
+            await this.userService.updateUser(uid, { email: newEmail });
+
+            res.json({ status: "success", message: "Email actualizado correctamente" });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    };
+
+    // Cambiar contraseña
+    changePassword = async (req, res) => {
+        try {
+            const { currentPassword, newPassword } = req.body;
+            const { uid } = req.params;
+            const user = await this.userService.getUserById(uid);
+
+            if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+            if (!isValidPassword(currentPassword, user.password)) {
+                return res.status(400).json({ error: "Contraseña actual incorrecta" });
+            }
+
+            if (isValidPassword(newPassword, user.password)) {
+                return res.status(400).json({ error: "La nueva contraseña no puede ser igual a la anterior" });
+            }
+
+            const hashed = createHash(newPassword);
+            await this.userService.updateUser(uid, { password: hashed });
+
+            res.json({ status: "success", message: "Contraseña actualizada correctamente" });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    };
+
 
 }

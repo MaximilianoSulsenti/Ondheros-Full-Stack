@@ -6,12 +6,30 @@ const Profile = () => {
   const { user: userContext } = useAuth();
   const [user, setUser] = useState(userContext);
   const [loading, setLoading] = useState(true);
+
+  // Edición de perfil
   const [showEdit, setShowEdit] = useState(false);
   const [editName, setEditName] = useState("");
   const [editImg, setEditImg] = useState("");
   const [imgPreview, setImgPreview] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
+
+  // Modales para email y contraseña
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showPassModal, setShowPassModal] = useState(false);
+
+  // Email
+  const [newEmail, setNewEmail] = useState("");
+  const [currentPassForEmail, setCurrentPassForEmail] = useState("");
+  const [emailMsg, setEmailMsg] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+
+  // Contraseña
+  const [currentPass, setCurrentPass] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [passMsg, setPassMsg] = useState("");
+  const [passLoading, setPassLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -34,7 +52,16 @@ const Profile = () => {
     else setLoading(false);
   }, [userContext]);
 
-  // Manejo de edición
+   // Autocompletar email al abrir modal
+  useEffect(() => {
+    if (showEmailModal) {
+      setNewEmail(user?.email || "");
+      setCurrentPassForEmail("");
+      setEmailMsg("");
+    }
+  }, [showEmailModal, user]);
+  
+  // Edición de nombre/avatar
   const handleEdit = () => {
     setEditName(user?.first_name || "");
     setEditImg(user?.img || "");
@@ -90,6 +117,67 @@ const Profile = () => {
     }
   };
 
+  // Cambiar email
+  const handleEmailChange = async (e) => {
+    e.preventDefault();
+    setEmailLoading(true);
+    setEmailMsg("");
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`http://localhost:8080/api/users/${user._id}/email`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ newEmail, currentPassword: currentPassForEmail })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUser((prev) => ({ ...prev, email: newEmail }));
+        setEmailMsg("¡Email actualizado!");
+        setShowEmailModal(false);
+      } else {
+        setEmailMsg(data.error || "Error al actualizar email");
+      }
+    } catch {
+      setEmailMsg("Error de conexión");
+    } finally {
+      setEmailLoading(false);
+      setTimeout(() => setEmailMsg(""), 2500);
+    }
+  };
+
+  // Cambiar contraseña
+  const handlePassChange = async (e) => {
+    e.preventDefault();
+    setPassLoading(true);
+    setPassMsg("");
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`http://localhost:8080/api/users/${user._id}/password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPassMsg("¡Contraseña actualizada!");
+        setShowPassModal(false);
+      } else {
+        setPassMsg(data.error || "Error al actualizar contraseña");
+      }
+    } catch {
+      setPassMsg("Error de conexión");
+    } finally {
+      setPassLoading(false);
+      setTimeout(() => setPassMsg(""), 2500);
+    }
+  };
+
   if (loading) return <div className="profile-loading">Cargando perfil...</div>;
 
   return (
@@ -111,16 +199,23 @@ const Profile = () => {
           <div className="profile-row">
             <span className="profile-label">Email:</span>
             <span className="profile-value">{user?.email}</span>
+            <button className="profile-action-btn" onClick={() => setShowEmailModal(true)}>Editar email</button>
           </div>
           <div className="profile-row">
             <span className="profile-label">Rol:</span>
             <span className="profile-value profile-role">{user?.role}</span>
+          </div>
+          <div className="profile-row">
+            <span className="profile-label">Contraseña:</span>
+            <span className="profile-value">********</span>
+            <button className="profile-action-btn" onClick={() => setShowPassModal(true)}>Cambiar contraseña</button>
           </div>
         </div>
         <button className="profile-edit-btn" onClick={handleEdit} disabled={saving}>
           {saving ? "Guardando..." : "Editar perfil"}
         </button>
         {saveMsg && <div className="profile-save-msg">{saveMsg}</div>}
+        {/* Modal editar nombre/avatar */}
         {showEdit && (
           <div className="profile-modal-overlay profile-modal-fadein">
             <div className="profile-modal">
@@ -143,6 +238,46 @@ const Profile = () => {
                   <button type="submit" className="profile-save-btn" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
                   <button type="button" className="profile-cancel-btn" onClick={() => setShowEdit(false)} disabled={saving}>Cancelar</button>
                 </div>
+              </form>
+            </div>
+          </div>
+        )}
+        {/* Modal cambiar email */}
+        {showEmailModal && (
+          <div className="profile-modal-overlay profile-modal-fadein">
+            <div className="profile-modal">
+              <form className="profile-edit-form" onSubmit={handleEmailChange}>
+                <label>Nuevo email:
+                  <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} required />
+                </label>
+                <label>Contraseña actual:
+                  <input type="password" value={currentPassForEmail} onChange={e => setCurrentPassForEmail(e.target.value)} required />
+                </label>
+                <div className="profile-edit-actions">
+                  <button type="submit" className="profile-save-btn" disabled={emailLoading}>{emailLoading ? "Guardando..." : "Guardar"}</button>
+                  <button type="button" className="profile-cancel-btn" onClick={() => setShowEmailModal(false)} disabled={emailLoading}>Cancelar</button>
+                </div>
+                {emailMsg && <div className="profile-save-msg">{emailMsg}</div>}
+              </form>
+            </div>
+          </div>
+        )}
+        {/* Modal cambiar contraseña */}
+        {showPassModal && (
+          <div className="profile-modal-overlay profile-modal-fadein">
+            <div className="profile-modal">
+              <form className="profile-edit-form" onSubmit={handlePassChange}>
+                <label>Contraseña actual:
+                  <input type="password" value={currentPass} onChange={e => setCurrentPass(e.target.value)} required />
+                </label>
+                <label>Nueva contraseña:
+                  <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} required />
+                </label>
+                <div className="profile-edit-actions">
+                  <button type="submit" className="profile-save-btn" disabled={passLoading}>{passLoading ? "Guardando..." : "Guardar"}</button>
+                  <button type="button" className="profile-cancel-btn" onClick={() => setShowPassModal(false)} disabled={passLoading}>Cancelar</button>
+                </div>
+                {passMsg && <div className="profile-save-msg">{passMsg}</div>}
               </form>
             </div>
           </div>

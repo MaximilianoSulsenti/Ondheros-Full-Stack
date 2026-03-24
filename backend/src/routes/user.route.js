@@ -15,16 +15,31 @@ export default function createUserRouter() {
     const usersService = new UserService(usersRepository);
     const controller = new UsersController(usersService);
 
+
+    // Ruta específica primero
+    router.get("/count", 
+      passport.authenticate("current", { session: false }), 
+      authorize("admin"),
+      controller.countUsers
+    );
+
     // GET para obtener todos los usuarios (protegido, solo admin)
     router.get("/", passport.authenticate("current", { session: false }), 
        authorize("admin"),
         controller.getUsers
     );
 
+    // Ruta con parámetro después
     router.get("/:uid", passport.authenticate("current", { session: false }), controller.getUserById);
 
     // PUT para actualizar un usuario
     router.put("/:uid", passport.authenticate("current", { session: false }),checkUserOwnership,authorize("user","admin"), controller.updateUser);
+
+    // Endpoint para cambiar email
+    router.put("/:uid/email", passport.authenticate("current", { session: false }), checkUserOwnership, authorize("user", "admin"), controller.changeEmail);
+
+    // Endpoint para cambiar contraseña
+    router.put("/:uid/password", passport.authenticate("current", { session: false }), checkUserOwnership, authorize("user", "admin"), controller.changePassword);
 
     // DELETE para eliminar un usuario
     router.delete("/:uid", passport.authenticate("current", { session: false }), authorize("admin"), controller.deleteUser);
@@ -41,12 +56,6 @@ export default function createUserRouter() {
          res.status(201).json({status: "success",message: "Usuario registrado correctamente", });
        })(req, res, next);
      });
-
-     router.get("/count", 
-       passport.authenticate("current", { session: false }), 
-       authorize("admin"),
-       controller.countUsers
-     );
 
     return router;
 }
