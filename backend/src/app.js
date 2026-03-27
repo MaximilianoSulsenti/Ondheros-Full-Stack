@@ -9,6 +9,7 @@ import passport from "passport";
 import { initializePassport } from "./config/passport.js";
 import { env } from "./config/environment.js";
 import initProductSocket from "./sockets/product.socket.js";
+import googleAuthRouter from "./routes/googleAuth.route.js";
 
 // DAO
 import ProductsDAO from "./dao/mongo/products.dao.js";
@@ -110,5 +111,6 @@ app.use("/api/users", createUserRouter(userService));
 app.use("/", createViewsRouter(productService, cartService));
 app.use("/api/sessions", sessionRouter);
 app.use("/api/password", passwordResetRouter);
+app.use("/api/auth/google", googleAuthRouter);
 
  initProductSocket(io, productService);

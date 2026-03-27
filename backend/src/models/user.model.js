@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema ({
     password: {type: String, required: true},
     cart: {type: mongoose.Schema.Types.ObjectId, ref: 'carts'},
     role: {type: String, required: true, default: 'user'},
-    img: {type: String, default: ""} // URL o base64 de la foto de perfil
+    img: {type: String, default: ""}, // URL o base64 de la foto de perfil
+    googleId: { type: String, unique: true, sparse: true }
 }, { timestamps: true});
 
 const userModel = mongoose.model (userCollection, userSchema)

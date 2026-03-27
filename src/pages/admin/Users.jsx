@@ -56,7 +56,7 @@ const Users = () => {
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(() => {
       setDebouncedSearch(search);
-    }, 250);
+    }, 500);
     return () => clearTimeout(debounceTimeout.current);
   }, [search]);
 

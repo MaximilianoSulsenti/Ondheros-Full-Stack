@@ -31,6 +31,8 @@ const Profile = () => {
   const [passMsg, setPassMsg] = useState("");
   const [passLoading, setPassLoading] = useState(false);
 
+  const googleName = localStorage.getItem("googleName");
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -194,7 +196,7 @@ const Profile = () => {
         <div className="profile-info">
           <div className="profile-row">
             <span className="profile-label">Nombre:</span>
-            <span className="profile-value">{user?.first_name}</span>
+            <span className="profile-value">{user?.first_name || googleName}</span>
           </div>
           <div className="profile-row">
             <span className="profile-label">Email:</span>

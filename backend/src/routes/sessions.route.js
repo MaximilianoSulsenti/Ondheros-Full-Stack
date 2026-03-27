@@ -25,7 +25,7 @@ router.get("/current", passport.authenticate("current", { session: false }), (re
 
 router.post("/logout", (req, res) => {
 
-    res.status(200).json({ status: "success", message: "Logout exitoso (token invalidado en cliente)" });
+    res.status(200).json({ status: "success", message: "Logout exitoso. El token ha sido invalidado en el cliente." });
 });
 
 

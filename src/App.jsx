@@ -12,13 +12,14 @@ import { ToastContainer } from "react-toastify";
 import AuthPages from "./pages/AuthPages.jsx";
 import { AuthProvider } from "./Context/AuthContext";
 import Profile from "./pages/Profile.jsx";
-import PrivateRoute from "./routes/privateRoute";
+import PrivateRoute from "./routes/privateRoute.jsx";
 import AdminRoute from "./routes/AdminRoute.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
 import Dashboard from "./pages/admin/Dashboard.jsx";
 import Orders from "./pages/admin/Orders.jsx";
 import Products from "./pages/admin/Products.jsx";
 import Users from "./pages/admin/Users.jsx";
+import AuthGoogleSuccess from "./pages/AuthGoogleSuccess.jsx";
 
 const App = () => {
   return (
@@ -28,68 +29,14 @@ const App = () => {
           <CarritoProvider>
             <Routes>
               {/* Rutas de tienda: NavBar y Footer */}
-              <Route path="/" element={
-                  <>
-                    <NavBar />
-                    <ItemListContainer />
-                    <Footer />
-                  </>
-                }
-              />
-              <Route path="/categoria/:categoriaId" element={
-                  <>
-                    <NavBar />
-                    <ItemListContainer />
-                    <Footer />
-                  </>
-                }
-              />
-              <Route path="/item/:itemId" element={
-                  <>
-                    <NavBar />
-                    <ItemDetailContainer />
-                    <Footer />
-                  </>
-                }
-              />
-              <Route path="/cart" element={
-                  <>
-                    <NavBar />
-                    <PrivateRoute>
-                      <Cart />
-                    </PrivateRoute>
-                    <Footer />
-                  </>
-                }
-              />
-              <Route path="/checkout" element={
-                  <>
-                    <NavBar />
-                    <PrivateRoute>
-                      <Checkout />
-                    </PrivateRoute>
-                    <Footer />
-                  </>
-                }
-              />
-              <Route path="/profile" element={
-                  <>
-                    <NavBar />
-                    <PrivateRoute>
-                      <Profile />
-                    </PrivateRoute>
-                    <Footer />
-                  </>
-                }
-              />
-              <Route path="/auth" element={
-                  <>
-                    <NavBar />
-                    <AuthPages />
-                    <Footer />
-                  </>
-                }
-              />
+              <Route path="/" element={<> <NavBar /><ItemListContainer /><Footer /></>}/>
+              <Route path="/categoria/:categoriaId" element={<><NavBar /><ItemListContainer /><Footer /></>}/>
+              <Route path="/item/:itemId" element={<><NavBar /><ItemDetailContainer /><Footer /></>}/>
+              <Route path="/cart" element={<><NavBar /><PrivateRoute><Cart /></PrivateRoute><Footer /></>}/>   
+              <Route path="/checkout" element={<><NavBar /><PrivateRoute><Checkout /></PrivateRoute><Footer /></>}/>
+              <Route path="/profile" element={<><NavBar /><PrivateRoute><Profile /></PrivateRoute><Footer /></>}/>
+              <Route path="/auth" element={<><NavBar /><AuthPages /><Footer /></>}/>
+              <Route path="/auth/google/success" element={<><NavBar /><AuthGoogleSuccess /><Footer /></>}/>
 
               {/* Rutas de admin: sin NavBar ni Footer */}
               <Route path="/admin/*" element={

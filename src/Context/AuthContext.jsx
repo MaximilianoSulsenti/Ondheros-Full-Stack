@@ -7,11 +7,22 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+    if (token) {
       setIsAuthenticated(true);
+      fetch("http://localhost:8080/api/sessions/current", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data && data.payload) {
+            setUser(data.payload);
+            localStorage.setItem("user", JSON.stringify(data.payload));
+          } else {
+            setUser(null);
+          }
+        })
+        .catch(() => setUser(null));
     }
   }, []);
 
@@ -68,9 +79,9 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("googleName");
     setUser(null);
     setIsAuthenticated(false);
-    // Opcional: llamar a /api/sessions/logout si quieres cerrar sesión en backend
   };
 
   return (
