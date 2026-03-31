@@ -10,6 +10,10 @@ import { initializePassport } from "./config/passport.js";
 import { env } from "./config/environment.js";
 import initProductSocket from "./sockets/product.socket.js";
 import googleAuthRouter from "./routes/googleAuth.route.js";
+import emailAdminRoute from "./routes/emailAdmin.route.js"; 
+
+// Integración automática del scheduler de newsletters programados
+import ('../scheduler.js');
 
 // DAO
 import ProductsDAO from "./dao/mongo/products.dao.js";
@@ -36,6 +40,7 @@ import createViewsRouter from "./routes/view.route.js";
 import createUserRouter from "./routes/user.route.js";
 import sessionRouter from "./routes/sessions.route.js";
 import passwordResetRouter from "./routes/passwordReset.route.js";
+
 
 // Definiciones de __dirname y __filename en ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -112,5 +117,6 @@ app.use("/", createViewsRouter(productService, cartService));
 app.use("/api/sessions", sessionRouter);
 app.use("/api/password", passwordResetRouter);
 app.use("/api/auth/google", googleAuthRouter);
+app.use("/api/admin", emailAdminRoute);
 
  initProductSocket(io, productService);
