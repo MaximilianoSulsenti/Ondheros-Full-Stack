@@ -1,4 +1,3 @@
-
 import { Link, Outlet } from "react-router-dom";
 import "./Admin.css";
 
@@ -16,6 +15,8 @@ const AdminLayout = () => {
           <Link to="/admin/users" className="admin-nav-link">Usuarios</Link>
           <Link to="/admin/products" className="admin-nav-link">Productos</Link>
           <Link to="/admin/orders" className="admin-nav-link">Pedidos</Link>
+          <Link to="/admin/newsletter" className="admin-nav-link">Newsletter</Link>
+          <Link to="/admin/newsletter/history" className="admin-nav-link">Historial Newsletter</Link>
         </nav>
       </aside>
       <main className="admin-content">

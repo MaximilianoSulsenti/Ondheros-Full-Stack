@@ -20,6 +20,8 @@ import Orders from "./pages/admin/Orders.jsx";
 import Products from "./pages/admin/Products.jsx";
 import Users from "./pages/admin/Users.jsx";
 import AuthGoogleSuccess from "./pages/AuthGoogleSuccess.jsx";
+import NewsletterForm from "./pages/NewsletterForm.jsx";
+import NewsletterHistory from "./pages/admin/NewsletterHistory.jsx";
 
 const App = () => {
   return (
@@ -49,6 +51,8 @@ const App = () => {
                 <Route path="orders" element={<Orders />} />
                 <Route path="products" element={<Products />} />
                 <Route path="users" element={<Users />} />
+                <Route path="newsletter" element={<NewsletterForm />} />
+                <Route path="newsletter/history" element={<NewsletterHistory />} />
               </Route>
             </Routes>
             <ToastContainer />

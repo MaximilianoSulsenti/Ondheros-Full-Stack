@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import "./Users.css";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -214,7 +215,7 @@ const Users = () => {
                     <div className="admin-actions-row">
                       <button className="edit-btn" onClick={() => handleEditClick(u)}>Editar</button>
                       <button className="delete-btn" onClick={() => handleDelete(u)}>Eliminar</button>
-                      <button className="create-btn" style={{padding:'6px 10px'}} onClick={() => handleDetails(u)}>Ver detalles</button>
+                      <button className="create-btn" onClick={() => handleDetails(u)}>Ver detalles</button>
                     </div>
                   </td>
                 </tr>
@@ -223,10 +224,10 @@ const Users = () => {
           </table>
         </div>
         {/* Paginación */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'center', margin: '18px 0 10px 0', flexWrap: 'wrap' }}>
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: '#6366f1', color: 'white', fontWeight: 600, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.6 : 1 }}>Anterior</button>
-          <span style={{ fontWeight: 500 }}>Página {currentPage} de {totalPages}</span>
-          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)} style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: '#6366f1', color: 'white', fontWeight: 600, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.6 : 1 }}>Siguiente</button>
+        <div className="users-pagination-row">
+          <button className="users-pagination-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Anterior</button>
+          <span className="users-pagination-label">Página {currentPage} de {totalPages}</span>
+          <button className="users-pagination-btn" disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}>Siguiente</button>
         </div>
         {/* Responsive mobile styles */}
         <style>{`

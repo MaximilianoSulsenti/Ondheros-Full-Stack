@@ -23,13 +23,48 @@
 		display: none;
 	}
 	.admin-actions-row {
-		flex-direction: column;
+		flex-direction: row !important;
 		gap: 4px;
 		align-items: stretch;
+		justify-content: flex-start;
 	}
 	.admin-actions-row button {
-		width: 100%;
+		display: inline-flex !important;
+		align-items: center;
+		justify-content: center;
+		width: auto;
+		min-width: 100px;
 		font-size: 1rem;
+		padding: 8px 18px;
+		border: none;
+		border-radius: 6px;
+		font-weight: 600;
+		color: #fff;
+		cursor: pointer;
+		transition: background 0.18s, box-shadow 0.18s;
+		box-shadow: 0 1px 4px rgba(60,60,60,0.08);
+		margin: 0 4px;
+		letter-spacing: 0.5px;
+		white-space: nowrap;
+		line-height: 1.1;
+	}
+	.admin-actions-row .edit-btn {
+		background: #2563eb;
+	}
+	.admin-actions-row .edit-btn:hover {
+		background: #1d4ed8;
+	}
+	.admin-actions-row .delete-btn {
+		background: #dc2626;
+	}
+	.admin-actions-row .delete-btn:hover {
+		background: #b91c1c;
+	}
+	.admin-actions-row .create-btn {
+		background: #059669;
+	}
+	.admin-actions-row .create-btn:hover {
+		background: #047857;
 	}
 	.admin-users-tablewrap::before {
 		content: 'Desliza la tabla →';
