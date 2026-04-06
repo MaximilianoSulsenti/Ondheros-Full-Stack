@@ -6,7 +6,7 @@ import { CarritoContext } from "../../Context/CarritoContext"
 import { categoriasTalles } from "../../categoriaTalles"
 import { toast } from "react-toastify"
 
-const ItemDetail = ({ id, nombre, precio, img, stock, descripcion, categoria}) => {
+const ItemDetail = ({ id, nombre, precio, imagen, stock, descripcion, categoria}) => {
 
   const [cantidadAgregada, setCantidadAgregada] = useState(0)
   const { agregarAlCarrito } = useContext(CarritoContext)
@@ -14,7 +14,7 @@ const ItemDetail = ({ id, nombre, precio, img, stock, descripcion, categoria}) =
   const manejadorCantidad = (cantidad, talla) => {
       setCantidadAgregada(cantidad)
 
-      const item = { id, nombre, precio, talla, img }
+      const item = { id, nombre, precio, talla, imagen } 
       agregarAlCarrito(item, cantidad, talla)
 
       toast.success(`Se agregó ${cantidad} ${nombre} - Talle ${talla}`, {
@@ -29,7 +29,7 @@ const ItemDetail = ({ id, nombre, precio, img, stock, descripcion, categoria}) =
   return (
     <div className="ItemDetail">
       <div>
-        <img src={img} alt={nombre} />
+        <img src={imagen} alt={nombre} />
       </div>
       <div className="detalle">
         <h2>{nombre}</h2>

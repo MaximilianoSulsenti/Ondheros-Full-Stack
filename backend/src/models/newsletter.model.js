@@ -6,9 +6,9 @@ const newsletterSchema = new mongoose.Schema({
   html: { type: String },
   attachments: [
     {
-      filename: String,
-      type: String,
-      size: Number
+      filename: { type: String, required: true },
+      type: { type: String, required: true },
+      size: { type: Number, required: true }
     }
   ],
   sentTo: [String], // lista de emails
@@ -18,5 +18,5 @@ const newsletterSchema = new mongoose.Schema({
   status: { type: String, enum: ["pendiente", "enviado", "fallido"], default: "enviado" }
 });
 
-const Newsletter = mongoose.model("Newsletter", newsletterSchema);
-export default Newsletter;
+const NewsletterUltra = mongoose.model("NewsletterUltra", newsletterSchema, "newsletterultras");
+export default NewsletterUltra;

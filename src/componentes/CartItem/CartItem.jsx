@@ -10,7 +10,7 @@ const CartItem = ({item, cantidad}) => {
   return (
 
    <div className="cart-item">
-      <img src={item.img} alt={item.nombre} style={{width: "110px", height: "110px",objectFit: "cover", borderRadius: "8px", marginRight: "15px", alignItems: "center"}}/>
+      <img src={item.imagen} alt={item.nombre} style={{width: "110px", height: "110px",objectFit: "cover", borderRadius: "8px", marginRight: "15px", alignItems: "center"}}/>
       <span className="nombre">{item.nombre}</span>
       <span>{cantidad}</span>
       <span>${item.precio}</span>

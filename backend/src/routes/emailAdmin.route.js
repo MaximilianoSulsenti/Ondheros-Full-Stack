@@ -4,7 +4,7 @@ import userModel from "../models/user.model.js";
 import { authorize } from "../middlewares/auth.js";
 import passport from "passport";
 import multer from "multer";
-import Newsletter from "../models/newsletter.model.js";
+import NewsletterUltra from "../models/newsletter.model.js";
 
 const upload = multer({ storage: multer.memoryStorage() });
 const router = Router();
@@ -31,9 +31,9 @@ router.get(
         };
       }
 
-      const total = await Newsletter.countDocuments(filter);
+      const total = await NewsletterUltra.countDocuments(filter);
       const totalPages = Math.ceil(total / pageSize);
-      const history = await Newsletter.find(filter)
+      const history = await NewsletterUltra.find(filter)
         .sort({ scheduledAt: -1, sentAt: -1 })
         .skip((page - 1) * pageSize)
         .limit(pageSize)
@@ -109,8 +109,16 @@ router.post(
         }
       }
 
-      const users = await userModel.find({}, "email");
-      const emails = users.map(u => u.email);
+      // Tomar los emails seleccionados desde el frontend
+      let emails = [];
+      if (Array.isArray(req.body.emails)) {
+        emails = req.body.emails;
+      } else if (typeof req.body.emails === 'string') {
+        emails = [req.body.emails];
+      }
+      // Filtrar emails válidos y únicos
+      emails = emails.filter(e => e)
+        .filter((e, i, arr) => arr.indexOf(e) === i);
 
       // Preparar adjuntos para SendGrid
       let attachments = [];
@@ -123,7 +131,7 @@ router.post(
         }));
       }
 
-      // Si hay fecha programada y es futura, guardar como pendiente
+      // Guardar newsletter tanto si es programado como si es inmediato
       let status = "enviado";
       let sentAt = null;
       let scheduledDate = scheduledAt ? new Date(scheduledAt) : null;
@@ -131,35 +139,56 @@ router.post(
       if (scheduledDate && scheduledDate > now) {
         status = "pendiente";
       } else {
-        // Envío inmediato
-        for (const to of emails) {
-          await sendEmail({
-            to,
-            subject,
-            text,
-            html: html || `<p>${text}</p>`,
-            attachments
-          });
-        }
-        sentAt = now;
+        sentAt = new Date();
       }
 
-      // Guardar historial
-      await Newsletter.create({
-        subject,
-        text,
-        html,
-        attachments: attachments.map(a => ({
-          filename: a.filename,
-          type: a.type,
-          size: req.files.find(f => f.originalname === a.filename)?.size || 0
-        })),
-        sentTo: emails,
-        sentBy: req.user?.email || req.user?._id?.toString() || "admin",
-        sentAt,
-        scheduledAt: scheduledDate,
-        status
-      });
+      try {
+        // Usar solo req.files para adjuntos, ignorar cualquier campo attachments del body
+        // Filtrar solo archivos reales (no strings ni campos de texto)
+        const attachments = (req.files || [])
+          .filter(f => f && typeof f === 'object' && f.originalname && f.mimetype)
+          .map(file => ({
+            filename: file.originalname,
+            type: file.mimetype,
+            size: file.size
+          }));
+        const newsletterData = {
+          subject,
+          text,
+          html,
+          attachments,
+          sentTo: emails,
+          sentBy: req.user?.email || req.user?._id?.toString() || "admin",
+          sentAt,
+          scheduledAt: scheduledDate,
+          status
+        };
+        const created = await NewsletterUltra.create(newsletterData);
+        // Enviar email solo si es inmediato (no programado)
+        if (status === "enviado") {
+          // Preparar adjuntos para SendGrid (content base64)
+          const sgAttachments = (req.files || []).map(file => ({
+            content: file.buffer.toString("base64"),
+            filename: file.originalname,
+            type: file.mimetype,
+            disposition: "attachment"
+          }));
+          for (const to of emails) {
+            if (to) {
+              await sendEmail({
+                to,
+                subject,
+                text,
+                html: html || `<p>${text}</p>`,
+                attachments: sgAttachments.length > 0 ? sgAttachments : undefined
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[NEWSLETTER] ERROR AL GUARDAR:", err);
+        return res.status(500).json({ status: "error", error: err.message, stack: err.stack });
+      }
 
       res.json({ status: "success", message: status === "pendiente" ? "Newsletter programado correctamente." : "Newsletter enviado a todos los usuarios." });
     } catch (error) {
@@ -175,7 +204,7 @@ router.delete(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const deleted = await Newsletter.findByIdAndDelete(id);
+      const deleted = await NewsletterUltra.findByIdAndDelete(id);
       if (!deleted) return res.status(404).json({ status: "error", error: "Newsletter no encontrado" });
       res.json({ status: "success", message: "Newsletter eliminado" });
     } catch (error) {

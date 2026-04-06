@@ -8,7 +8,6 @@ import { fileURLToPath } from "url";
 import passport from "passport";
 import { initializePassport } from "./config/passport.js";
 import { env } from "./config/environment.js";
-import initProductSocket from "./sockets/product.socket.js";
 import googleAuthRouter from "./routes/googleAuth.route.js";
 import emailAdminRoute from "./routes/emailAdmin.route.js"; 
 
@@ -78,10 +77,6 @@ const hbs = exphbs.create({
     }
 });
 
-// Configuración Handlebars
-app.engine("handlebars", hbs.engine);
-app.set("view engine", "handlebars");
-app.set("views", path.join(__dirname, "views"));
 
 // Instanciación de DAOs, Repositories y Services para productos, carritos y usuarios
 const productsDAO = new ProductsDAO();
@@ -119,4 +114,3 @@ app.use("/api/password", passwordResetRouter);
 app.use("/api/auth/google", googleAuthRouter);
 app.use("/api/admin", emailAdminRoute);
 
- initProductSocket(io, productService);

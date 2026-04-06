@@ -56,9 +56,9 @@ const Products = () => {
 
   const filteredProducts = products.filter(p => {
     const matchSearch =
-      (p.title || "").toLowerCase().includes(search.toLowerCase());
+      (p.nombre || "").toLowerCase().includes(search.toLowerCase());
     const matchCategory =
-      categoryFilter === "" || p.category === categoryFilter;
+      categoryFilter === "" || p.categoria === categoryFilter;
     return matchSearch && matchCategory;
   });
 
@@ -99,6 +99,7 @@ const Products = () => {
       <table className="admin-table">
         <thead>
           <tr>
+            <th>Imagen</th>
             <th>Producto</th>
             <th>Precio</th>
             <th>Categoría</th>
@@ -109,9 +110,16 @@ const Products = () => {
         <tbody>
           {filteredProducts.map(p => (
             <tr key={p._id || p.id}>
-              <td>{p.title}</td>
-              <td>${p.price}</td>
-              <td>{p.category}</td>
+              <td>
+                {p.imagen || p.image ? (
+                  <img src={p.imagen || p.image} alt={p.nombre} style={{ width: 60, height: 60, objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ color: '#aaa' }}>Sin imagen</span>
+                )}
+              </td>
+              <td>{p.nombre}</td>
+              <td>${p.precio}</td>
+              <td>{p.categoria}</td>
               <td>{p.stock}</td>
               <td>
                 <button

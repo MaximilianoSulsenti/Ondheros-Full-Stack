@@ -1,30 +1,37 @@
-import React, { useEffect, useState } from 'react'
-import { db } from '../../services/config'
-import { doc, getDoc } from 'firebase/firestore'
-import ItemDetail from '../ItemDetail/ItemDetail'
-import { useParams } from 'react-router-dom'
+
+import React, { useEffect, useState } from 'react';
+import ItemDetail from '../ItemDetail/ItemDetail';
+import { useParams } from 'react-router-dom';
+
+const API_URL = "http://localhost:8080/api/products"; // Cambia el puerto si tu backend usa otro
 
 const ItemDetailContainer = () => {
-   const [producto, setProducto] = useState([null])
-
-  const {itemId} = useParams()
+  const [producto, setProducto] = useState(null);
+  const { itemId } = useParams();
 
   useEffect(() => {
-    const nuevoDoc = doc(db, "productos", itemId)
-    getDoc(nuevoDoc)
-    .then(respuesta => {
-      const data = respuesta.data()
-      const nuevosProductos = {id: respuesta.id, ...data}
-      setProducto(nuevosProductos)
-    })
-    .catch(error => console.log(error))
-  },[itemId])
+    if (!itemId) return;
+    fetch(`${API_URL}/${itemId}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Error al obtener producto");
+        return res.json();
+      })
+      .then(data => {
+        setProducto(data.payload);
+      })
+      .catch(error => {
+        console.log(error);
+        setProducto(null);
+      });
+  }, [itemId]);
+
+  if (!producto) return <div>Cargando...</div>;
 
   return (
     <div>
-      <ItemDetail {...producto}/>
+      <ItemDetail {...producto} />
     </div>
-  )
-}
+  );
+};
 
-export default ItemDetailContainer
+export default ItemDetailContainer;

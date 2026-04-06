@@ -2,27 +2,36 @@ import { useState, useEffect } from "react";
 
 const ProductModal = ({ show, onClose, onSave, editingProduct }) => {
 
+
     const [form, setForm] = useState({
-        title: "",
-        price: "",
-        category: "",
+        nombre: "",
+        precio: "",
+        categoria: "",
         stock: "",
-        image: "",
-        description: ""
+        image: null,
+        descripcion: ""
     });
+
 
     useEffect(() => {
         if (editingProduct) {
-            setForm(editingProduct);
+            setForm({
+                ...editingProduct,
+                image: null // No pre-cargar imagen como archivo
+            });
         }
     }, [editingProduct]);
 
+
     const handleChange = (e) => {
-        setForm({
-            ...form,
-            [e.target.name]: e.target.value
-        });
+        const { name, value, files } = e.target;
+        if (name === "image" && files && files[0]) {
+            setForm({ ...form, image: files[0] });
+        } else {
+            setForm({ ...form, [name]: value });
+        }
     };
+
 
 
     const handleSubmit = async (e) => {
@@ -34,13 +43,23 @@ const ProductModal = ({ show, onClose, onSave, editingProduct }) => {
             ? `http://localhost:8080/api/products/${editingProduct._id || editingProduct.id}`
             : "http://localhost:8080/api/products";
 
+        const formData = new FormData();
+        formData.append("nombre", form.nombre);
+        formData.append("precio", form.precio);
+        formData.append("categoria", form.categoria);
+        formData.append("stock", form.stock);
+        formData.append("descripcion", form.descripcion);
+        if (form.image && form.image instanceof File) {
+            formData.append("image", form.image);
+        }
+
         const res = await fetch(url, {
             method,
             headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
+                // No pongas Content-Type, fetch lo pone solo con FormData
             },
-            body: JSON.stringify(form)
+            body: formData
         });
 
         if (!res.ok) {
@@ -52,16 +71,17 @@ const ProductModal = ({ show, onClose, onSave, editingProduct }) => {
         onSave(data.payload || form);
 
         setForm({
-            title: "",
-            price: "",
-            category: "",
+            nombre: "",
+            precio: "",
+            categoria: "",
             stock: "",
-            image: "",
-            description: ""
+            image: null,
+            descripcion: ""
         });
 
         onClose();
     };
+
 
     if (!show) return null;
 
@@ -74,27 +94,28 @@ const ProductModal = ({ show, onClose, onSave, editingProduct }) => {
 
                 <form onSubmit={handleSubmit} className="modal-form">
 
+
                     <input
-                        name="title"
+                        name="nombre"
                         placeholder="Nombre del producto"
-                        value={form.title}
+                        value={form.nombre}
                         onChange={handleChange}
                         required
                     />
 
                     <input
-                        name="price"
+                        name="precio"
                         type="number"
                         placeholder="Precio"
-                        value={form.price}
+                        value={form.precio}
                         onChange={handleChange}
                         required
                     />
 
                     <input
-                        name="category"
+                        name="categoria"
                         placeholder="Categoría"
-                        value={form.category}
+                        value={form.categoria}
                         onChange={handleChange}
                     />
 
@@ -106,24 +127,26 @@ const ProductModal = ({ show, onClose, onSave, editingProduct }) => {
                         onChange={handleChange}
                     />
 
+
                     <input
                         name="image"
-                        placeholder="URL imagen"
-                        value={form.image}
+                        type="file"
+                        accept="image/*"
                         onChange={handleChange}
                     />
 
-                    {form.image && (
+                    {form.image && form.image instanceof File && (
                         <div className="image-preview">
-                            <img src={form.image} alt="preview" />
+                            <img src={URL.createObjectURL(form.image)} alt="preview" />
                         </div>
                     )}
 
 
+
                     <textarea
-                        name="description"
+                        name="descripcion"
                         placeholder="Descripción"
-                        value={form.description}
+                        value={form.descripcion}
                         onChange={handleChange}
                     />
 

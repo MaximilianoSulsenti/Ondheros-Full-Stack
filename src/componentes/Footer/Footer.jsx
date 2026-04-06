@@ -1,22 +1,15 @@
 import React, { useState } from "react";
-import { db } from "../../services/config";
-import { collection, addDoc } from "firebase/firestore";
 import { FaInstagram, FaFacebook, FaWhatsapp } from "react-icons/fa";
-import "./Footer.css"
+import "./Footer.css";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [mensaje, setMensaje] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      await addDoc(collection(db, "suscripciones"), { email, fecha: new Date() });
-      setMensaje("¡Gracias por suscribirte!");
-      setEmail("");
-    } catch (error) {
-      setMensaje("Hubo un error, intenta nuevamente.");
-    }
+    setMensaje("¡Gracias por suscribirte! (Funcionalidad deshabilitada)");
+    setEmail("");
   };
 
   return (

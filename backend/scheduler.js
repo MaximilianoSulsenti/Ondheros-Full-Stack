@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import mongoose from "mongoose";
-import Newsletter from "./src/models/newsletter.model.js";
+import NewsletterUltra from "./src/models/newsletter.model.js";
 import userModel from "./src/models/user.model.js";
 import { sendEmail } from "./src/utils/sendEmail.js";
 import dotenv from "dotenv";
@@ -17,7 +17,7 @@ cron.schedule("* * * * *", async () => {
   try {
     const now = new Date();
     // Buscar newsletters pendientes cuya fecha programada ya pasó
-    const newsletters = await Newsletter.find({
+    const newsletters = await NewsletterUltra.find({
       status: "pendiente",
       scheduledAt: { $lte: now }
     });
@@ -49,5 +49,3 @@ cron.schedule("* * * * *", async () => {
     console.error("Error en job de newsletters programados:", err);
   }
 });
-
-console.log("Job scheduler de newsletters programados iniciado.");

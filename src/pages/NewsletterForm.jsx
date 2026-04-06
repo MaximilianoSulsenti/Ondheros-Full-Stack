@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-  // (Sin control manual de apertura/cierre del menú)
 // Helpers para favoritos en localStorage
 const FAVORITES_KEY = "newsletterFavorites";
 function getFavorites() {
@@ -120,7 +119,7 @@ export default function NewsletterForm() {
   const [subject, setSubject] = useState("");
   const [text, setText] = useState("");
   // Plantillas rápidas (almacenadas en localStorage)
-    // Borrador (almacenado en localStorage)
+  // Borrador (almacenado en localStorage)
     useEffect(() => {
       // Al cargar, restaurar borrador si existe
       const savedDraft = localStorage.getItem("newsletterDraft");
@@ -188,7 +187,8 @@ export default function NewsletterForm() {
       if (selectedEmails.length > 0) {
         selectedEmails.forEach(e => formData.append("emails", e.value));
       }
-      attachments.forEach((file, idx) => {
+      // Solo enviar archivos, nunca el array como string ni como campo de texto
+      attachments.forEach(file => {
         formData.append("attachments", file);
       });
       if (scheduledAt) {
@@ -272,7 +272,7 @@ export default function NewsletterForm() {
           </div>
           <div style={{ minWidth: 300 }}>
             <label style={{ fontWeight: 500, color: '#3730a3', marginBottom: 4, display: 'block' }}>Emails destinatarios</label>
-            {/* Filtros rápidos y búsqueda avanzada (solo UI, sin lógica backend aún) */}
+            {/* Filtros rápidos y búsqueda avanzada */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
               <input
                 type="text"

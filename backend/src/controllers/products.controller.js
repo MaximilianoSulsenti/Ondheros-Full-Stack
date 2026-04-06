@@ -1,8 +1,7 @@
 export default class ProductsController {
-    constructor(productService, io = null) {
+    constructor(productService) {
         this.productService = productService;
-        this.io = io;
-    } 
+    }
 
 //get con paginacion, filtros y orden
     getProducts = async (req, res) => {
@@ -54,35 +53,33 @@ export default class ProductsController {
         }
     };
 
+
     createProduct = async (req, res) => {
         try {
-            const newProduct = await this.productService.createProduct(req.body);
-
-            // Emitimos actualización a sockets si io está disponible
-            if (this.io && typeof this.io.emit === "function") {
-            const updatedList = await this.productService.getProducts();
-            this.io.emit("productos_actualizados", updatedList);
+            const productData = req.body;
+            if (req.file && req.file.path) {
+                productData.imagen = req.file.path; // URL de Cloudinary
             }
-
-            res.status(201).json({message: "Producto creado",payload: newProduct});
+            const newProduct = await this.productService.createProduct(productData);
+            res.status(201).json({message: "Producto creado", payload: newProduct});
         } catch (error) {
             res.status(400).json({ message: error.message });
         }
     };
 
+
     updateProduct = async (req, res) => {
         try {
-            const updated = await this.productService.updateProduct(req.params.productId,req.body);
+            const productData = req.body;
+            if (req.file && req.file.path) {
+                productData.imagen = req.file.path;
+            }
+            const updated = await this.productService.updateProduct(req.params.productId, productData);
 
             if (!updated)
                 return res.status(404).json({ msg: "Producto no encontrado" });
 
-            if (this.io && typeof this.io.emit === "function") {
-            const updatedList = await this.productService.getProducts();
-            this.io.emit("productos_actualizados", updatedList);
-            }
-
-            res.status(200).json({message: "Producto actualizado",payload: updated});
+            res.status(200).json({message: "Producto actualizado", payload: updated});
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -94,11 +91,6 @@ export default class ProductsController {
 
             if (!deleted)
                 return res.status(404).json({ msg: "Producto no encontrado" });
-
-            if (this.io && typeof this.io.emit === "function") {
-            const updatedList = await this.productService.getProducts();
-            this.io.emit("productos_actualizados", updatedList);
-            }
 
             res.status(200).json({message: "Producto eliminado", payload: deleted});
         } catch (error) {
