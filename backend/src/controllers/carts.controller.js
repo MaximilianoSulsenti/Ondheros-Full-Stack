@@ -4,6 +4,20 @@ export default class CartsController {
         this.ticketService = ticketService;
     }
 
+    // Obtener tickets del usuario autenticado
+    getMyTickets = async (req, res) => {
+        try {
+            const userEmail = req.user?.email;
+            if (!userEmail) return res.status(401).json({ error: "No autenticado" });
+            const tickets = await this.ticketService.getAllTickets();
+            // Filtrar por email del usuario
+            const myTickets = tickets.filter(t => t.purchaser === userEmail);
+            res.status(200).json({ payload: myTickets });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    };
+
     createCart = async (req, res) => {
         try {
             const cart = await this.cartService.createCart();
@@ -28,9 +42,16 @@ export default class CartsController {
 
     addProductToCart = async (req, res) => {
         try {
-            const { quantity } = req.body;
+            const { cantidad, quantity, talla } = req.body;
+            // Soportar ambos nombres de cantidad por compatibilidad
+            const qty = cantidad || quantity;
 
-            const cart = await this.cartService.addProductToCart(req.params.cartId, req.params.productId, quantity);
+            const cart = await this.cartService.addProductToCart(
+                req.params.cartId,
+                req.params.productId,
+                qty,
+                talla
+            );
 
             if (!cart)
                 return res.status(404).json({ msg: "Carrito o producto no encontrado" });
@@ -69,7 +90,12 @@ export default class CartsController {
 
     deleteProductFromCart = async (req, res) => {
         try {
-            const cart = await this.cartService.deleteProductFromCart(req.params.cartId, req.params.productId);
+            const talla = req.query.talla || null;
+            const cart = await this.cartService.deleteProductFromCart(
+                req.params.cartId,
+                req.params.productId,
+                talla
+            );
             if (!cart)
                 return res.status(404).json({ msg: "carrito no encontrado" });
 

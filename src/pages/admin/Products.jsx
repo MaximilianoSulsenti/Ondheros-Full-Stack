@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import ProductModal from "./ProductModal";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -15,7 +17,7 @@ const Products = () => {
     const fetchProducts = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8080/api/products", {
+        const res = await fetch(`${backendUrl}/api/products`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) throw new Error("Error al obtener productos");
@@ -43,7 +45,7 @@ const Products = () => {
 
   const deleteProduct = async (id) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:8080/api/products/${id}`, {
+    const res = await fetch(`${backendUrl}/api/products/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` }
     });

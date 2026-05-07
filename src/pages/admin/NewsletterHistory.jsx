@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import "./NewsletterHistory.css";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const PAGE_SIZE = 10;
 
 const NewsletterHistory = () => {
@@ -30,7 +32,7 @@ const NewsletterHistory = () => {
           pageSize: PAGE_SIZE,
           search: debouncedSearch
         });
-        const res = await fetch(`http://localhost:8080/api/admin/newsletter/history?${params}` , {
+        const res = await fetch(`${backendUrl}/api/admin/newsletter/history?${params}` , {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) throw new Error("Error al obtener historial");
@@ -141,7 +143,7 @@ const NewsletterHistory = () => {
                         if(window.confirm('¿Seguro que deseas eliminar este newsletter?')) {
                           try {
                             const token = localStorage.getItem("token");
-                            const res = await fetch(`http://localhost:8080/api/admin/newsletter/${item._id}`, {
+                            const res = await fetch(`${backendUrl}/api/admin/newsletter/${item._id}`, {
                               method: 'DELETE',
                               headers: { Authorization: `Bearer ${token}` }
                             });

@@ -47,11 +47,11 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5173", // Vite (desarrollo)
-  // Agrega aquí tu dominio de producción cuando lo tengas, por ejemplo:
-  // "https://ondheros.netlify.app"
-];
+
+// Orígenes permitidos desde variable de entorno
+const allowedOrigins = env.ALLOWED_ORIGINS
+  ? env.ALLOWED_ORIGINS.split(",").map(origin => origin.trim())
+  : [];
 
 app.use(cors({
   origin: allowedOrigins,
@@ -83,9 +83,9 @@ const productsDAO = new ProductsDAO();
 const productsRepository = new ProductsRepository(productsDAO);
 const productService = new ProductService(productsRepository);
 
+
 const cartsDAO = new CartsDAO();
 const cartsRepository = new CartsRepository(cartsDAO);
-const cartService = new CartService(cartsRepository, productsRepository);
 
 const usersDAO = new UsersDAO();
 const usersRepository = new UsersRepository(usersDAO);
@@ -94,6 +94,8 @@ const userService = new UserService(usersRepository);
 const ticketDAO = new TicketDAO();
 const ticketRepository = new TicketRepository(ticketDAO);
 const ticketService = new TicketService(ticketRepository);
+
+const cartService = new CartService(cartsRepository, productsRepository, ticketRepository);
 
 // conexion del servidor
 const PORT = env.PORT;

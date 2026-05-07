@@ -1,6 +1,7 @@
-
 import { createContext, useContext, useState, useEffect } from "react";
 const AuthContext = createContext();
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -10,7 +11,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsAuthenticated(true);
-      fetch("http://localhost:8080/api/sessions/current", {
+      fetch(`${backendUrl}/api/sessions/current`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.ok ? res.json() : null)
@@ -20,16 +21,27 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem("user", JSON.stringify(data.payload));
           } else {
             setUser(null);
+            setIsAuthenticated(false);
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
           }
         })
-        .catch(() => setUser(null));
+        .catch(() => {
+          setUser(null);
+          setIsAuthenticated(false);
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+        });
+    } else {
+      setIsAuthenticated(false);
+      setUser(null);
     }
   }, []);
 
   // LOGIN REAL
   const login = async (email, password) => {
     try {
-      const res = await fetch("http://localhost:8080/api/sessions/login", {
+      const res = await fetch(`${backendUrl}/api/sessions/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -56,7 +68,7 @@ export const AuthProvider = ({ children }) => {
   // REGISTER REAL
   const register = async (form) => {
     try {
-      const res = await fetch("http://localhost:8080/api/users/register", {
+      const res = await fetch(`${backendUrl}/api/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)

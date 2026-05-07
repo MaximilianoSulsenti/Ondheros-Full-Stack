@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import "./Users.css";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ const Users = () => {
       if (search) params.append("search", search);
       if (role) params.append("role", role);
 
-      const res = await fetch(`http://localhost:8080/api/users?${params.toString()}`, {
+      const res = await fetch(`${backendUrl}/api/users?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Error al obtener usuarios");
@@ -87,7 +89,7 @@ const Users = () => {
     setModalMsg("");
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:8080/api/users/${editUser._id || editUser.id}`, {
+      const res = await fetch(`${backendUrl}/api/users/${editUser._id || editUser.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -129,7 +131,7 @@ const Users = () => {
     setModalMsg("");
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:8080/api/users/${deleteUser._id || deleteUser.id}`, {
+      const res = await fetch(`${backendUrl}/api/users/${deleteUser._id || deleteUser.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });

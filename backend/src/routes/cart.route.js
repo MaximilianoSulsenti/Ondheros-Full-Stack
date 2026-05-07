@@ -9,11 +9,18 @@ export default function createCartRouter(cartService, productService, ticketServ
     // Controller
     const Controller = new CartsController(cartService, ticketService);
 
+    // Historial de compras del usuario autenticado
+    router.get(
+      "/my-tickets",
+      passport.authenticate("current", { session: false }),
+      authorize("user", "admin"),
+      Controller.getMyTickets
+    );
 
-    // Contar tickets (debe ir antes de /:cartId)
+    // Contar tickets (solo admin)
     router.get("/tickets/count", passport.authenticate("current", { session: false }), authorize("admin"), Controller.countTickets);
 
-    // Listar todos los tickets (debe ir antes de /:cartId)
+    // Listar todos los tickets (solo admin)
     router.get(
       "/tickets",
       passport.authenticate("current", { session: false }),
@@ -21,28 +28,28 @@ export default function createCartRouter(cartService, productService, ticketServ
       Controller.getAllTickets
     );
 
-    // Crear carrito
-    router.post("/", passport.authenticate("current", { session: false }), authorize("user"), Controller.createCart);
+    // Crear carrito (user y admin)
+    router.post("/", passport.authenticate("current", { session: false }), authorize("user", "admin"), Controller.createCart);
 
-    // Obtener carrito por ID
+    // Obtener carrito por ID (user y admin)
     router.get("/:cartId", passport.authenticate("current", { session: false }), authorize("user", "admin"), Controller.getCartById);
 
-    // Agregar producto al carrito
-    router.post("/:cartId/product/:productId", passport.authenticate("current", { session: false }), authorize("user"), Controller.addProductToCart);
+    // Agregar producto al carrito (user y admin)
+    router.post("/:cartId/product/:productId", passport.authenticate("current", { session: false }), authorize("user", "admin"), Controller.addProductToCart);
 
-    //actualiza todos los productos del carrito
-    router.put("/:cartId", passport.authenticate("current", { session: false }), authorize("user"), Controller.updateCartProducts);
+    // Actualizar todos los productos del carrito (user y admin)
+    router.put("/:cartId", passport.authenticate("current", { session: false }), authorize("user", "admin"), Controller.updateCartProducts);
 
-    //actualizar cantidad de un producto en el carrito
+    // Actualizar cantidad de un producto en el carrito (solo admin)
     router.put("/:cartId/product/:productId", passport.authenticate("current", { session: false }), authorize("admin"),  Controller.updateProductQuantity);
 
-    // elimina del carrito el producto seleccionado 
-    router.delete("/:cartId/product/:productId", passport.authenticate("current", { session: false }), authorize("user"), Controller.deleteProductFromCart);
+    // Eliminar producto del carrito (user y admin)
+    router.delete("/:cartId/product/:productId", passport.authenticate("current", { session: false }), authorize("user", "admin"), Controller.deleteProductFromCart);
 
-    //elimina todos los productos del carrito 
+    // Eliminar todos los productos del carrito (solo admin)
     router.delete("/:cartId", passport.authenticate("current", { session: false }), authorize("admin"), Controller.clearCart);
 
-    // ruta para finalizar compra y generar ticket 
+    // Finalizar compra y generar ticket (solo user)
     router.post("/:cartId/purchase", passport.authenticate("current", { session: false }), authorize("user"), Controller.purchaseCart);
 
     return router;

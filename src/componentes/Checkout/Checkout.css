@@ -1,3 +1,45 @@
+/* Resumen visual de productos en checkout */
+.checkout-resumen {
+  width: 100%;
+  max-width: 700px;
+  margin: 30px 0 20px 0;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 20px 10px;
+}
+
+.checkout-header, .checkout-item {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.checkout-header {
+  font-weight: 700;
+  border-bottom: 2px solid #eaeaea;
+  color: #333;
+  background: #f7f7f7;
+}
+
+.checkout-item {
+  border-bottom: 1px solid #ececec;
+  font-size: 15px;
+}
+
+.checkout-item:last-child {
+  border-bottom: none;
+}
+
+.checkout-item img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f2f2f2;
+}
 .contenedor-form {
   display: flex;
   flex-direction: column;
@@ -71,11 +113,14 @@
   color: white;
   font-size: 16px;
   font-weight: 600;
-  padding: 12px 20px;
+  padding: 12px 32px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  width: 100%;
+  width: auto;
+  min-width: 180px;
+  margin: 0 auto;
+  display: block;
   transition: background 0.3s ease, transform 0.1s;
 }
 
@@ -97,40 +142,28 @@
 
 /*resposive para mobile*/
 
-@media (max-width: 768px) {
-  .contenedor-form {
-    padding: 20px 10px;
-    min-height: auto; 
+@media (max-width: 900px) {
+  .checkout-header, .checkout-item {
+    grid-template-columns: 1.5fr 0.8fr 0.8fr 0.8fr 1fr;
+    font-size: 1rem;
+    padding: 10px 2px;
   }
+}
 
-  .contenedor-form h2 {
-    font-size: 28px;
-    margin-bottom: 20px;
+@media (max-width: 600px) {
+  .checkout-header, .checkout-item {
+    grid-template-columns: 1fr 0.7fr 0.7fr 0.7fr 1fr;
+    font-size: 0.9rem;
+    padding: 6px 1px;
   }
-
-  .formulario {
-    width: 100%; 
-    padding: 20px 25px; 
-  }
-
-  .formulario div {
-    margin-bottom: 18px;
-  }
-
-  .formulario div input[type="text"],
-  .formulario div input[type="email"] {
+  .fin-compra {
     font-size: 14px;
     padding: 8px 10px;
+    min-width: 120px;
   }
-
-  .fin-compra {
-    font-size: 15px;
-    padding: 10px 15px;
-  }
-
-  .strong-orden {
-    font-size: 14px;
-    margin-top: 15px;
+  .contenedor-form h2 {
+    font-size: 22px;
+    margin-bottom: 14px;
   }
 }
 

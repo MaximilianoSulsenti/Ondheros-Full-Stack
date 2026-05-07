@@ -4,7 +4,9 @@ import ItemList from "../ItemList/ItemList";
 import { useParams } from "react-router-dom";
 import { Loader } from "../Loader/Loader";
 
-const API_URL = "http://localhost:8080/api/products"; // Cambia el puerto si tu backend usa otro
+const backendUrl = import.meta.env.VITE_BACKEND_URL
+
+const API_URL = `${backendUrl}/api/products`; // Cambia el puerto si tu backend usa otro
 
 const ItemListContainer = () => {
   const [productos, setProductos] = useState([]);

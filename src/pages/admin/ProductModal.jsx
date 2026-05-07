@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const ProductModal = ({ show, onClose, onSave, editingProduct }) => {
 
 
@@ -40,8 +42,8 @@ const ProductModal = ({ show, onClose, onSave, editingProduct }) => {
         const token = localStorage.getItem("token");
         const method = editingProduct ? "PUT" : "POST";
         const url = editingProduct
-            ? `http://localhost:8080/api/products/${editingProduct._id || editingProduct.id}`
-            : "http://localhost:8080/api/products";
+            ? `${backendUrl}/api/products/${editingProduct._id || editingProduct.id}`
+            : `${backendUrl}/api/products`;
 
         const formData = new FormData();
         formData.append("nombre", form.nombre);

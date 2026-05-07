@@ -23,8 +23,8 @@ export default class CartService {
     }
 
     //agregar producto al carrito
-    addProductToCart(cartId, productId, quantity) {
-        return this.cartsRepository.addProductToCart(cartId, productId, quantity);
+    addProductToCart(cartId, productId, quantity, talla) {
+        return this.cartsRepository.addProductToCart(cartId, productId, quantity, talla);
     }
 
     //actualiza todos los productos del carrito
@@ -38,8 +38,8 @@ export default class CartService {
     }
 
     //eliminar un producto del carrito
-    deleteProductFromCart(cartId, productId) {
-        return this.cartsRepository.deleteProductFromCart(cartId, productId);
+    deleteProductFromCart(cartId, productId, talla) {
+        return this.cartsRepository.deleteProductFromCart(cartId, productId, talla);
     }
     
       // eliminar todos los productos del carrito

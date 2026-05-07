@@ -15,23 +15,24 @@ export default class CartsDAO {
         return await cartModel.create({ productos: [] });
     }
 
-    async addProductToCart(cartId, productId, quantity = 1) {
+    async addProductToCart(cartId, productId, quantity = 1, talla = null) {
         const cart = await cartModel.findById(cartId);
         if (!cart) return null;
 
         const productExists = await productModel.findById(productId);
         if (!productExists) return null;
 
-        const  qty = Number(quantity) || 1;
+        const qty = Number(quantity) || 1;
 
+        // Buscar producto con mismo id y mismo talle
         const productInCart = cart.productos.find(
-            p => p.product.toString() === productId.toString()
+            p => p.product.toString() === productId.toString() && p.talla === talla
         );
 
         if (productInCart) {
             productInCart.quantity += qty;
         } else {
-            cart.productos.push({ product: productId, quantity: qty });
+            cart.productos.push({ product: productId, quantity: qty, talla });
         }
 
         await cart.save();
@@ -63,12 +64,12 @@ export default class CartsDAO {
         return this.getCartById(cartId);
     }
 
-    async deleteProductFromCart(cartId, productId) {
+    async deleteProductFromCart(cartId, productId, talla = null) {
         const cart = await cartModel.findById(cartId);
         if (!cart) return null;
 
         cart.productos = cart.productos.filter(
-            p => p.product.toString() !== productId.toString()
+            p => !(p.product.toString() === productId.toString() && (p.talla === talla))
         );
 
         await cart.save();

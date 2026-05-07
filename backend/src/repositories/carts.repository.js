@@ -15,8 +15,8 @@ export default class CartsRepository {
     return this.dao.createCart();
   }
 
-  addProductToCart(cartId, productId, quantity) {
-    return this.dao.addProductToCart(cartId, productId, quantity);
+  addProductToCart(cartId, productId, quantity, talla) {
+    return this.dao.addProductToCart(cartId, productId, quantity, talla);
   }
 
   updateCartProducts(cartId, products) {
@@ -27,8 +27,8 @@ export default class CartsRepository {
     return this.dao.updateProductQuantity(cartId, productId, quantity);
   }
 
-  deleteProductFromCart(cartId, productId) {
-    return this.dao.deleteProductFromCart(cartId, productId);
+  deleteProductFromCart(cartId, productId, talla) {
+    return this.dao.deleteProductFromCart(cartId, productId, talla);
   }
 
   clearCart(cartId) {

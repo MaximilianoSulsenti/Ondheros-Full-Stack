@@ -3,6 +3,8 @@ import { useAuth } from "../Context/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./AuthPages.css";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 export default function AuthPages() {
   const [mode, setMode] = useState("login"); // login | register
   const [loading, setLoading] = useState(false);
@@ -94,7 +96,7 @@ export default function AuthPages() {
     setForgotMsg("");
     setForgotLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/password/forgot", {
+      const res = await fetch(`${backendUrl}/api/password/forgot`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail })
@@ -154,7 +156,7 @@ export default function AuthPages() {
               type="button"
               className="boton-auth google"
               onClick={() => {
-                window.location.href = "http://localhost:8080/api/auth/google";
+                window.location.href = `${backendUrl}/api/auth/google`;
               }}
               style={{
                 background: "#fff",

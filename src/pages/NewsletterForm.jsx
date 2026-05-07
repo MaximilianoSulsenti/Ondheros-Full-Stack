@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
+import Select from "react-select";
+import "./NewsletterForm.css";
+
 // Helpers para favoritos en localStorage
 const FAVORITES_KEY = "newsletterFavorites";
 function getFavorites() {
@@ -10,11 +13,10 @@ function getFavorites() {
 function saveFavorites(favs) {
   localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
 }
-import Select from "react-select";
-import "./NewsletterForm.css";
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function NewsletterForm() {
-  // Segmentación: roles y emails
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState(null);
   const [emails, setEmails] = useState([]);
@@ -28,7 +30,6 @@ export default function NewsletterForm() {
   const [search, setSearch] = useState("");
   // Por defecto, aplicar ambos filtros: activos y verificados
   const [filter, setFilter] = useState("activos-verificados");
-  // Debounce para búsqueda
   const [debouncedSearch, setDebouncedSearch] = useState("");
   useEffect(() => {
     const timeout = setTimeout(() => setDebouncedSearch(search), 400);
@@ -39,7 +40,7 @@ export default function NewsletterForm() {
         const fetchRoles = async () => {
           try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:8080/api/admin/newsletter/segments", {
+            const res = await fetch(`${backendUrl}/api/admin/newsletter/segments`, {
               headers: { Authorization: `Bearer ${token}` }
             });
             const data = await res.json();
@@ -65,7 +66,7 @@ export default function NewsletterForm() {
             params.append("role", selectedRole.value);
             if (filter) params.append("filter", filter);
             if (debouncedSearch) params.append("search", debouncedSearch);
-            const res = await fetch(`http://localhost:8080/api/admin/newsletter/segments?${params.toString()}`, {
+            const res = await fetch(`${backendUrl}/api/admin/newsletter/segments?${params.toString()}`, {
               headers: { Authorization: `Bearer ${token}` }
             });
             const data = await res.json();
@@ -194,7 +195,7 @@ export default function NewsletterForm() {
       if (scheduledAt) {
         formData.append("scheduledAt", scheduledAt);
       }
-      const res = await fetch("http://localhost:8080/api/admin/newsletter", {
+      const res = await fetch(`${backendUrl}/api/admin/newsletter`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

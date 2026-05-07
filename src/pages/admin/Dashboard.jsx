@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const Dashboard = () => {
   const [stats, setStats] = useState({
     users: 0,
@@ -15,9 +17,9 @@ const Dashboard = () => {
         const headers = { Authorization: `Bearer ${token}` };
 
         const [usersRes, productsRes, ordersRes] = await Promise.all([
-          fetch("http://localhost:8080/api/users/count", { headers }),
-          fetch("http://localhost:8080/api/products/count", { headers }),
-          fetch("http://localhost:8080/api/carts/tickets/count", { headers })
+          fetch(`${backendUrl}/api/users/count`, { headers }),
+          fetch(`${backendUrl}/api/products/count`, { headers }),
+          fetch(`${backendUrl}/api/carts/tickets/count`, { headers })
         ]);
         const users = await usersRes.json();
         const products = await productsRes.json();

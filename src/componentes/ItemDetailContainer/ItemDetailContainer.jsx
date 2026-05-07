@@ -3,7 +3,9 @@ import React, { useEffect, useState } from 'react';
 import ItemDetail from '../ItemDetail/ItemDetail';
 import { useParams } from 'react-router-dom';
 
-const API_URL = "http://localhost:8080/api/products"; // Cambia el puerto si tu backend usa otro
+const backendUrl = import.meta.env.VITE_BACKEND_URL
+
+const API_URL = `${backendUrl}/api/products`; // Cambia el puerto si tu backend usa otro
 
 const ItemDetailContainer = () => {
   const [producto, setProducto] = useState(null);

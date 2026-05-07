@@ -2,10 +2,32 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../Context/AuthContext";
 import "./Profile.css";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const Profile = () => {
   const { user: userContext } = useAuth();
   const [user, setUser] = useState(userContext);
   const [loading, setLoading] = useState(true);
+  // Historial de compras
+  const [myTickets, setMyTickets] = useState([]);
+  const [loadingTickets, setLoadingTickets] = useState(true);
+  // Obtener historial de compras
+  useEffect(() => {
+    const fetchTickets = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${backendUrl}/api/carts/my-tickets`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setMyTickets(data.payload || []);
+        }
+      } catch {}
+      setLoadingTickets(false);
+    };
+    fetchTickets();
+  }, []);
 
   // Edición de perfil
   const [showEdit, setShowEdit] = useState(false);
@@ -37,7 +59,7 @@ const Profile = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8080/api/users/" + userContext?._id, {
+        const res = await fetch(`${backendUrl}/api/users/${userContext?._id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -93,7 +115,7 @@ const Profile = () => {
     }
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`http://localhost:8080/api/users/${user._id}`, {
+      const res = await fetch(`${backendUrl}/api/users/${user._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -126,7 +148,7 @@ const Profile = () => {
     setEmailMsg("");
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`http://localhost:8080/api/users/${user._id}/email`, {
+      const res = await fetch(`${backendUrl}/api/users/${user._id}/email`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -157,7 +179,7 @@ const Profile = () => {
     setPassMsg("");
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`http://localhost:8080/api/users/${user._id}/password`, {
+      const res = await fetch(`${backendUrl}/api/users/${user._id}/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -217,6 +239,43 @@ const Profile = () => {
           {saving ? "Guardando..." : "Editar perfil"}
         </button>
         {saveMsg && <div className="profile-save-msg">{saveMsg}</div>}
+
+        {/* Historial de compras */}
+        <div className="profile-orders">
+          <h3>Historial de compras</h3>
+          {loadingTickets ? (
+            <div>Cargando historial...</div>
+          ) : myTickets.length === 0 ? (
+            <div>No tienes compras registradas.</div>
+          ) : (
+            <table className="profile-orders-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Fecha</th>
+                  <th>Total</th>
+                  <th>Productos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myTickets.map((t) => (
+                  <tr key={t._id || t.code}>
+                    <td>{t.code}</td>
+                    <td>{new Date(t.purchase_datetime).toLocaleString()}</td>
+                    <td>${t.amount}</td>
+                    <td>
+                      <ul style={{margin:0,paddingLeft:16}}>
+                        {t.products.map((p, i) => (
+                          <li key={i}>{p.quantity} x {p.product?.nombre || p.product} (${p.price} c/u)</li>
+                        ))}
+                      </ul>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
         {/* Modal editar nombre/avatar */}
         {showEdit && (
           <div className="profile-modal-overlay profile-modal-fadein">
