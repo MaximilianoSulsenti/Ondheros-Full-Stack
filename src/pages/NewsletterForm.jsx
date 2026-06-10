@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import "./NewsletterForm.css";
 
@@ -25,7 +25,6 @@ export default function NewsletterForm() {
   const [favorites, setFavorites] = useState(getFavorites());
   const [favName, setFavName] = useState("");
   const SELECT_ALL_OPTION = { value: '__all__', label: 'Seleccionar todos' };
-  const [selectAll, setSelectAll] = useState(false);
   // Filtros y búsqueda avanzada
   const [search, setSearch] = useState("");
   // Por defecto, aplicar ambos filtros: activos y verificados
@@ -84,12 +83,6 @@ export default function NewsletterForm() {
         fetchEmails();
       }, [selectedRole, filter, debouncedSearch]);
 
-      // Si cambia la lista de emails y está activado seleccionar todos, selecciona todos
-      useEffect(() => {
-        if (selectAll && emails.length > 0) {
-          setSelectedEmails(emails);
-        }
-      }, [emails, selectAll]);
     // Archivos adjuntos
     const [attachments, setAttachments] = useState([]);
 
@@ -167,6 +160,7 @@ export default function NewsletterForm() {
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+  const isErrorMsg = msg.toLowerCase().includes("error") || msg.toLowerCase().includes("debes");
   // Programar envío
   const [scheduledAt, setScheduledAt] = useState("");
 
@@ -255,36 +249,50 @@ export default function NewsletterForm() {
   };
 
   return (
-    <>
+    <div className="newsletter-layout">
       <form className="newsletter-form-container" onSubmit={handleSubmit}>
         <h2 className="newsletter-form-title">Enviar newsletter</h2>
+        <div className="newsletter-kpi-row">
+          <span className="newsletter-kpi-pill">
+            Destinatarios: {selectedEmails.length}
+          </span>
+          <span className="newsletter-kpi-pill">
+            Adjuntos: {attachments.length}
+          </span>
+          {scheduledAt && (
+            <span className="newsletter-kpi-pill is-scheduled">
+              Programado
+            </span>
+          )}
+        </div>
         {/* Segmentación: rol y emails */}
-        <div style={{ marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ minWidth: 200 }}>
-            <label style={{ fontWeight: 500, color: '#3730a3', marginBottom: 4, display: 'block' }}>Rol destinatario</label>
+        <div className="newsletter-segmentation">
+          <div className="newsletter-segment-role">
+            <label className="newsletter-inline-label">Rol destinatario</label>
             <Select
               options={roles}
               value={selectedRole}
               onChange={setSelectedRole}
               placeholder="Seleccionar rol..."
               isClearable
+              classNamePrefix="newsletter-select"
               noOptionsMessage={() => "Sin roles"}
             />
           </div>
-          <div style={{ minWidth: 300 }}>
-            <label style={{ fontWeight: 500, color: '#3730a3', marginBottom: 4, display: 'block' }}>Emails destinatarios</label>
+          <div className="newsletter-segment-emails">
+            <label className="newsletter-inline-label">Emails destinatarios</label>
             {/* Filtros rápidos y búsqueda avanzada */}
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+            <div className="newsletter-inline-filters">
               <input
                 type="text"
                 placeholder="Buscar por nombre o email..."
-                style={{ padding: '2px 8px', borderRadius: 8, border: '1px solid #e0e7ef', fontSize: '0.93rem', minWidth: 120 }}
+                className="newsletter-mini-input"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 disabled={!selectedRole || emails.length === 0}
               />
               <select
-                style={{ padding: '2px 8px', borderRadius: 8, border: '1px solid #e0e7ef', fontSize: '0.93rem' }}
+                className="newsletter-mini-select"
                 value={filter}
                 onChange={e => setFilter(e.target.value)}
                 disabled={!selectedRole || emails.length === 0}
@@ -299,7 +307,7 @@ export default function NewsletterForm() {
             <Select
               options={emails}
               value={selectedEmails}
-              onChange={(vals, action) => {
+              onChange={(vals) => {
                 if (Array.isArray(vals)) {
                   const hasSelectAll = vals.some(v => v.value === SELECT_ALL_OPTION.value);
                   if (hasSelectAll) {
@@ -320,16 +328,17 @@ export default function NewsletterForm() {
               isDisabled={!selectedRole || emails.length === 0}
               placeholder={selectedRole ? (emails.length ? "Seleccionar emails..." : "Sin emails para este rol") : "Selecciona un rol primero"}
               noOptionsMessage={() => "Sin emails"}
+              classNamePrefix="newsletter-select"
               closeMenuOnSelect={false}
             />
             {/* Mensaje visual si no hay emails para mostrar */}
             {selectedRole && emails.length === 0 && (
-              <div style={{ color: '#ef4444', fontWeight: 500, marginTop: 6 }}>
+              <div className="newsletter-inline-error">
                 No se encontraron usuarios con estos filtros.
               </div>
             )}
             {/* Contador de seleccionados */}
-            <div style={{ fontSize: '0.92rem', color: '#6366f1', marginTop: 4, minHeight: 20 }}>
+            <div className="newsletter-counter-inline">
               {selectedRole && emails.length > 1 && (
                 <>
                   {selectedEmails.length} de {emails.length - 1} seleccionados
@@ -340,19 +349,19 @@ export default function NewsletterForm() {
             {selectedEmails.length > 0 && (
               <>
                 {selectedEmails.length > 100 && (
-                  <div style={{ color: '#ef4444', fontWeight: 600, marginBottom: 4, fontSize: '0.97rem' }}>
+                  <div className="newsletter-inline-warning">
                     ¡Advertencia! Estás seleccionando más de 100 destinatarios. El envío puede demorar o fallar según el proveedor.
                   </div>
                 )}
-                <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                <div className="newsletter-chip-row">
                   {selectedEmails.map(e => (
-                    <span key={e.value} style={{ background: '#e0e7ef', color: '#3730a3', borderRadius: 12, padding: '2px 10px', fontSize: '0.93rem', fontWeight: 500 }}>
+                    <span key={e.value} className="newsletter-chip">
                       {e.label}
                     </span>
                   ))}
                   <button
                     type="button"
-                    style={{ marginLeft: 8, padding: '2px 10px', borderRadius: 8, border: '1px solid #e0e7ef', background: '#fff', color: '#3730a3', fontWeight: 500, fontSize: '0.93rem', cursor: 'pointer', transition: 'all 0.2s' }}
+                    className="newsletter-chip-btn"
                     title="Copiar emails al portapapeles"
                     onClick={() => {
                       const emailsStr = selectedEmails.map(e => e.value).join(", ");
@@ -365,7 +374,7 @@ export default function NewsletterForm() {
                   </button>
                   <button
                     type="button"
-                    style={{ marginLeft: 4, padding: '2px 10px', borderRadius: 8, border: '1px solid #e0e7ef', background: '#fff', color: '#ef4444', fontWeight: 500, fontSize: '0.93rem', cursor: 'pointer', transition: 'all 0.2s' }}
+                    className="newsletter-chip-btn is-danger"
                     title="Deshacer selección de emails"
                     onClick={() => setSelectedEmails([])}
                   >
@@ -377,11 +386,11 @@ export default function NewsletterForm() {
                     value={favName}
                     onChange={e => setFavName(e.target.value)}
                     placeholder="Nombre grupo"
-                    style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 8, border: '1px solid #e0e7ef', fontSize: '0.93rem', minWidth: 90 }}
+                    className="newsletter-mini-input newsletter-fav-input"
                   />
                   <button
                     type="button"
-                    style={{ marginLeft: 4, padding: '2px 10px', borderRadius: 8, border: '1px solid #e0e7ef', background: '#10b981', color: '#fff', fontWeight: 500, fontSize: '0.93rem', cursor: 'pointer', transition: 'all 0.2s' }}
+                    className="newsletter-chip-btn is-success"
                     title="Guardar grupo favorito"
                     disabled={!favName || selectedEmails.length === 0}
                     onClick={() => {
@@ -399,13 +408,13 @@ export default function NewsletterForm() {
             )}
             {/* Listado de favoritos */}
             {favorites.length > 0 && (
-              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                <span style={{ color: '#6366f1', fontWeight: 500, fontSize: '0.93rem' }}>Favoritos:</span>
+              <div className="newsletter-favorites-row">
+                <span className="newsletter-favorites-label">Favoritos:</span>
                 {favorites.map((fav, i) => (
                   <button
                     key={fav.name + i}
                     type="button"
-                    style={{ background: '#f3f4f6', color: '#3730a3', border: '1px solid #e0e7ef', borderRadius: 8, padding: '2px 10px', fontWeight: 500, fontSize: '0.93rem', cursor: 'pointer' }}
+                    className="newsletter-fav-btn"
                     title={`Seleccionar grupo: ${fav.name}`}
                     onClick={() => {
                       // Solo selecciona los emails que estén en la lista actual
@@ -418,7 +427,7 @@ export default function NewsletterForm() {
                 {/* Botón para limpiar favoritos */}
                 <button
                   type="button"
-                  style={{ background: '#fff', color: '#ef4444', border: '1px solid #e0e7ef', borderRadius: 8, padding: '2px 10px', fontWeight: 500, fontSize: '0.93rem', cursor: 'pointer' }}
+                  className="newsletter-fav-btn is-danger"
                   title="Eliminar todos los favoritos"
                   onClick={() => { setFavorites([]); saveFavorites([]); }}
                 >
@@ -429,11 +438,11 @@ export default function NewsletterForm() {
           </div>
           </div>
         {/* Plantillas rápidas y borrador */}
-        <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="newsletter-templates-row">
           <select
             value={selectedTemplate}
             onChange={handleTemplateChange}
-            style={{ padding: '0.4rem', borderRadius: 6, border: '1px solid #e0e7ef', minWidth: 180 }}
+            className="newsletter-template-select"
           >
             <option value="">Seleccionar plantilla rápida...</option>
             {templates.map((tpl, idx) => (
@@ -443,7 +452,7 @@ export default function NewsletterForm() {
           <button
             type="button"
             onClick={handleSaveTemplate}
-            style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: 6, padding: '0.4rem 0.8rem', cursor: 'pointer', fontWeight: 500 }}
+            className="newsletter-chip-btn is-primary"
           >
             Guardar como plantilla
           </button>
@@ -451,21 +460,21 @@ export default function NewsletterForm() {
             type="button"
             onClick={handleDeleteTemplate}
             disabled={selectedTemplate === ""}
-            style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: 6, padding: '0.4rem 0.8rem', cursor: selectedTemplate === "" ? 'not-allowed' : 'pointer', fontWeight: 500, opacity: selectedTemplate === "" ? 0.5 : 1 }}
+            className="newsletter-chip-btn is-danger"
           >
             Eliminar plantilla
           </button>
           <button
             type="button"
             onClick={handleSaveDraft}
-            style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: 6, padding: '0.4rem 0.8rem', cursor: 'pointer', fontWeight: 500 }}
+            className="newsletter-chip-btn is-success"
           >
             Guardar borrador
           </button>
           <button
             type="button"
             onClick={handleClearDraft}
-            style={{ background: '#f59e42', color: '#fff', border: 'none', borderRadius: 6, padding: '0.4rem 0.8rem', cursor: 'pointer', fontWeight: 500 }}
+            className="newsletter-chip-btn is-warning"
           >
             Limpiar borrador
           </button>
@@ -480,7 +489,7 @@ export default function NewsletterForm() {
           onChange={e => setSubject(e.target.value)}
           required
         />
-        <div style={{ fontSize: '0.92rem', color: '#6366f1', marginBottom: 8, textAlign: 'right' }}>
+        <div className="newsletter-length-counter">
           {subject.length} / 100 caracteres
         </div>
         <label className="newsletter-form-label" htmlFor="newsletter-text">Mensaje</label>
@@ -493,7 +502,7 @@ export default function NewsletterForm() {
           required
           rows={6}
         />
-        <div style={{ fontSize: '0.92rem', color: '#6366f1', marginBottom: 8, textAlign: 'right' }}>
+        <div className="newsletter-length-counter">
           {text.length} / 1000 caracteres
         </div>
         {/* Adjuntar archivos debajo del mensaje */}
@@ -507,7 +516,6 @@ export default function NewsletterForm() {
               accept="image/*,application/pdf"
               multiple
               onChange={handleFileChange}
-              style={{ display: 'none' }}
             />
           </label>
           {attachments.length > 0 && (
@@ -524,8 +532,8 @@ export default function NewsletterForm() {
           )}
         </div>
         {/* Programar envío */}
-        <div style={{ margin: '16px 0 8px 0' }}>
-          <label style={{ fontWeight: 500, color: '#3730a3', marginBottom: 4, display: 'block' }}>
+        <div className="newsletter-schedule-block">
+          <label className="newsletter-inline-label">
             Programar envío (opcional):
           </label>
           <input
@@ -537,52 +545,35 @@ export default function NewsletterForm() {
               const utc = new Date(local.getTime() - local.getTimezoneOffset() * 60000);
               setScheduledAt(utc.toISOString().slice(0, 16));
             }}
-            style={{ padding: '4px 8px', borderRadius: 8, border: '1px solid #e0e7ef', fontSize: '0.93rem' }}
+            className="newsletter-mini-input"
             min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0,16)}
           />
         </div>
         <button type="submit" className="newsletter-form-btn" disabled={loading}>
           {loading ? (scheduledAt ? "Programando..." : "Enviando...") : (scheduledAt ? "Programar envío" : "Enviar newsletter")}
         </button>
-        {msg && <div className="newsletter-form-msg">{msg}</div>}
+        {msg && <div className={`newsletter-form-msg ${isErrorMsg ? "is-error" : "is-success"}`}>{msg}</div>}
       </form>
       {/* Vista previa en vivo tipo email real */}
-      <div style={{
-        maxWidth: 480,
-        margin: "1.5rem auto 0 auto",
-        background: "#f8fafc",
-        border: "1px solid #e0e7ef",
-        borderRadius: 10,
-        boxShadow: "0 1px 8px rgba(60,60,60,0.06)",
-        padding: "1.2rem 1rem"
-      }}>
-        <div style={{ color: "#6366f1", fontWeight: 700, fontSize: "1.1rem", marginBottom: 6 }}>Vista previa tipo email</div>
-        <div style={{
-          background: '#fff',
-          border: '1px solid #e0e7ef',
-          borderRadius: 8,
-          padding: '1rem',
-          minHeight: 80,
-          fontFamily: 'Segoe UI, Arial, sans-serif',
-          color: '#222',
-          boxShadow: '0 1px 4px rgba(60,60,60,0.04)'
-        }}>
-          <div style={{ color: '#3730a3', fontWeight: 600, fontSize: '1.05rem', marginBottom: 8 }}>
-            {subject || <span style={{ color: '#a3a3a3' }}>[Asunto]</span>}
+      <div className="newsletter-preview">
+        <div className="newsletter-preview-title">Vista previa tipo email</div>
+        <div className="newsletter-preview-card">
+          <div className="newsletter-preview-subject">
+            {subject || <span className="newsletter-preview-muted">[Asunto]</span>}
           </div>
           <div
-            style={{ fontSize: '1rem', lineHeight: 1.6, minHeight: 60 }}
+            className="newsletter-preview-body"
             dangerouslySetInnerHTML={{
               __html: text
                 ? text
                     .replace(/\n/g, '<br/>')
                     .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
                     .replace(/\*(.*?)\*/g, '<i>$1</i>')
-                : '<span style="color:#a3a3a3">[Mensaje]</span>'
+                : '<span class="newsletter-preview-muted">[Mensaje]</span>'
             }}
           />
         </div>
       </div>
-    </>
+    </div>
   );
 }

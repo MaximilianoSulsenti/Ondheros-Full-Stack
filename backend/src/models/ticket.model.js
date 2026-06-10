@@ -7,6 +7,8 @@ const ticketSchema = new mongoose.Schema ({
     purchase_datetime: {type: Date, default: Date.now},
     amount: {type: Number, required: true},
     purchaser: {type: String, required: true},
+    archived: { type: Boolean, default: false },
+    archivedAt: { type: Date, default: null },
     products: [
                 {
             product: {type: mongoose.Schema.Types.ObjectId, ref: 'products', required: true},

@@ -228,6 +228,23 @@
 	background: linear-gradient(90deg, #818cf8 60%, #38bdf8 100%);
 }
 
+.profile-orders-link {
+	display: inline-block;
+	margin-top: 6px;
+	background: #111827;
+	color: #ffffff;
+	text-decoration: none;
+	border-radius: 8px;
+	padding: 8px 18px;
+	font-size: 1rem;
+	font-weight: 600;
+	transition: background 0.2s;
+}
+
+.profile-orders-link:hover {
+	background: #1f2937;
+}
+
 /* Modal edición */
 .profile-modal-overlay {
 	position: fixed;

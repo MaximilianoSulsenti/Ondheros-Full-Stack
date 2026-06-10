@@ -14,4 +14,8 @@ export default class TicketRepository {
     getAllTickets() {
         return this.dao.getAll();
     }
+
+    setTicketArchived(ticketId, archived) {
+        return this.dao.setArchived(ticketId, archived);
+    }
 }

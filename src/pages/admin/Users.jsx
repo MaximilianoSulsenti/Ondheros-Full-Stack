@@ -22,6 +22,8 @@ const Users = () => {
   const debounceTimeout = useRef(null);
   const [role, setRole] = useState("");
   const [totalUsers, setTotalUsers] = useState(0);
+  const adminsInPage = users.filter((u) => u.role === "admin").length;
+  const usersInPage = users.filter((u) => u.role !== "admin").length;
 
   // Handler para mostrar detalles del usuario
   const handleDetails = (user) => {
@@ -116,8 +118,8 @@ const Users = () => {
     }
   };
 
-  if (loading) return <div>Cargando usuarios...</div>;
-  if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
+  if (loading) return <div className="users-state">Cargando usuarios...</div>;
+  if (error) return <div className="users-state users-state-error">Error: {error}</div>;
 
   // Eliminar usuario
   const handleDelete = (user) => {
@@ -152,41 +154,52 @@ const Users = () => {
   // ...existing code...
 
   return (
-    <div className="admin-users-bg">
-      <div className="admin-users-wrapper">
-        <div className="admin-users-header">
-          <h1 className="admin-users-title">Panel de Usuarios</h1>
-          <span className="admin-users-count">{totalUsers} usuarios</span>
+    <section className="users-page">
+      <div className="users-wrapper">
+        <div className="users-header">
+          <h1 className="users-title">Panel de Usuarios</h1>
+          <span className="users-count">{totalUsers} usuarios</span>
         </div>
+
+        <div className="users-kpis">
+          <article className="users-kpi-card">
+            <span>Total visibles</span>
+            <strong>{users.length}</strong>
+          </article>
+          <article className="users-kpi-card">
+            <span>Admins</span>
+            <strong>{adminsInPage}</strong>
+          </article>
+          <article className="users-kpi-card">
+            <span>Usuarios</span>
+            <strong>{usersInPage}</strong>
+          </article>
+          <article className="users-kpi-card">
+            <span>Paginacion</span>
+            <strong>{currentPage}/{totalPages}</strong>
+          </article>
+        </div>
+
         {/* Controles de búsqueda y filtro */}
-        <div style={{ display: 'flex', gap: 16, marginBottom: 18, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="users-controls">
           <input
             type="text"
             placeholder="Buscar usuario..."
             value={search}
             onChange={e => {setSearch(e.target.value); setCurrentPage(1);}}
-            style={{ padding: 8, borderRadius: 6, border: '1.5px solid #e0e7ff', minWidth: 180 }}
+            className="users-search"
             autoComplete="off"
             autoFocus 
           />
-          <select value={role} onChange={e => { setCurrentPage(1); setRole(e.target.value); }} style={{ padding: 8, borderRadius: 6, border: '1.5px solid #e0e7ff' }}>
+          <select value={role} onChange={e => { setCurrentPage(1); setRole(e.target.value); }} className="users-role-filter">
             <option value="">Todos los roles</option>
             <option value="admin">Admin</option>
             <option value="user">Usuario</option>
           </select>
         </div>
-        <div className="admin-users-tablewrap">
-          <table className="admin-table">
-            <colgroup>
-              <col style={{width:'80px',maxWidth:'90px'}} />
-              <col style={{width:'120px'}} />
-              <col style={{width:'120px'}} />
-              <col style={{width:'180px'}} />
-              <col style={{width:'70px'}} />
-              <col style={{width:'80px'}} />
-              <col style={{width:'110px'}} />
-              <col style={{width:'140px'}} />
-            </colgroup>
+
+        <div className="users-table-wrap">
+          <table className="admin-table users-table">
             <thead>
               <tr>
                 <th>ID</th>
@@ -200,79 +213,87 @@ const Users = () => {
               </tr>
             </thead>
             <tbody>
-              {users.map(u => (
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="users-empty-row">No se encontraron usuarios con los filtros actuales.</td>
+                </tr>
+              ) : (
+              users.map(u => (
                 <tr key={u._id || u.id}>
-                  <td className="user-id-cell">
-                    <span className="user-id-short" title="Ver ID completo" onClick={() => handleDetails({ ...u, showFullId: true })}>
-                      {(u._id || u.id)?.slice(0,8)}... <span className="user-id-vermas">ver más</span>
+                  <td className="users-id-cell">
+                    <span className="users-id-short" title="Ver ID completo" onClick={() => handleDetails({ ...u, showFullId: true })}>
+                      {(u._id || u.id)?.slice(0,8)}... <span className="users-id-more">ver más</span>
                     </span>
                   </td>
                   <td>{u.first_name}</td>
                   <td>{u.last_name}</td>
-                  <td><span className="user-email">{u.email}</span></td>
+                  <td><span className="users-email">{u.email}</span></td>
                   <td>{u.age}</td>
-                  <td><span className={u.role==='admin' ? 'user-role-admin' : 'user-role-user'}>{u.role}</span></td>
+                  <td><span className={u.role==='admin' ? 'users-role-admin' : 'users-role-user'}>{u.role}</span></td>
                   <td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : ''}</td>
                   <td>
-                    <div className="admin-actions-row">
-                      <button className="edit-btn" onClick={() => handleEditClick(u)}>Editar</button>
-                      <button className="delete-btn" onClick={() => handleDelete(u)}>Eliminar</button>
-                      <button className="create-btn" onClick={() => handleDetails(u)}>Ver detalles</button>
+                    <div className="users-actions-row">
+                      <button className="users-btn users-btn-edit" onClick={() => handleEditClick(u)}>Editar</button>
+                      <button className="users-btn users-btn-delete" onClick={() => handleDelete(u)}>Eliminar</button>
+                      <button className="users-btn users-btn-details" onClick={() => handleDetails(u)}>Ver detalles</button>
                     </div>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>
+
+        <div className="users-cards-mobile">
+          {users.length === 0 ? (
+            <div className="users-empty-row">No se encontraron usuarios con los filtros actuales.</div>
+          ) : (
+            users.map((u) => (
+              <article className="users-mobile-card" key={`mobile-${u._id || u.id}`}>
+                <div className="users-mobile-card-head">
+                  <div>
+                    <p className="users-mobile-name">{u.first_name} {u.last_name}</p>
+                    <p className="users-mobile-email">{u.email}</p>
+                  </div>
+                  <span className={u.role === "admin" ? "users-role-admin" : "users-role-user"}>{u.role}</span>
+                </div>
+
+                <div className="users-mobile-meta">
+                  <span><b>ID:</b> {(u._id || u.id)?.slice(0, 8)}...</span>
+                  <span><b>Edad:</b> {u.age || "-"}</span>
+                  <span><b>Registro:</b> {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "-"}</span>
+                </div>
+
+                <div className="users-actions-row">
+                  <button className="users-btn users-btn-edit" onClick={() => handleEditClick(u)}>Editar</button>
+                  <button className="users-btn users-btn-delete" onClick={() => handleDelete(u)}>Eliminar</button>
+                  <button className="users-btn users-btn-details" onClick={() => handleDetails(u)}>Ver detalles</button>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+
         {/* Paginación */}
         <div className="users-pagination-row">
           <button className="users-pagination-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Anterior</button>
           <span className="users-pagination-label">Página {currentPage} de {totalPages}</span>
           <button className="users-pagination-btn" disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}>Siguiente</button>
         </div>
-        {/* Responsive mobile styles */}
-        <style>{`
-          @media (max-width: 700px) {
-            .admin-table {
-              font-size: 0.93rem !important;
-            }
-            .admin-table th, .admin-table td {
-              padding: 7px 3px !important;
-            }
-            .admin-table colgroup col {
-              width: auto !important;
-              max-width: 100px !important;
-            }
-          }
-          @media (max-width: 500px) {
-            .admin-table {
-              font-size: 0.89rem !important;
-            }
-            .admin-table th, .admin-table td {
-              padding: 5px 2px !important;
-            }
-            .admin-table colgroup col {
-              width: auto !important;
-              max-width: 70px !important;
-            }
-            .admin-table td {
-              word-break: break-all !important;
-            }
-          }
-        `}</style>
+
         {/* Modal eliminar usuario */}
         {deleteUser && (
-          <div className="modal-overlay">
-            <div className="modal-container">
-              <div className="modal-form">
+          <div className="users-modal-overlay">
+            <div className="users-modal-container">
+              <div className="users-modal-form">
                 <h3>Eliminar usuario</h3>
                 <p>¿Seguro que deseas eliminar a <b>{deleteUser.first_name} {deleteUser.last_name}</b>?</p>
-                <div className="modal-buttons">
-                  <button className="delete-btn" onClick={confirmDelete} disabled={deleting}>{deleting ? "Eliminando..." : "Eliminar"}</button>
-                  <button className="cancel-btn" onClick={() => setDeleteUser(null)} disabled={deleting}>Cancelar</button>
+                <div className="users-modal-buttons">
+                  <button className="users-btn users-btn-delete" onClick={confirmDelete} disabled={deleting}>{deleting ? "Eliminando..." : "Eliminar"}</button>
+                  <button className="users-btn users-btn-cancel" onClick={() => setDeleteUser(null)} disabled={deleting}>Cancelar</button>
                 </div>
-                {modalMsg && <div style={{ marginTop: 8, color: modalMsg.includes("correctamente") ? '#198754' : '#dc3545' }}>{modalMsg}</div>}
+                {modalMsg && <div className={`users-modal-msg ${modalMsg.includes("correctamente") ? "is-success" : "is-error"}`}>{modalMsg}</div>}
               </div>
             </div>
           </div>
@@ -280,44 +301,28 @@ const Users = () => {
 
         {/* Modal detalles usuario mejorado y ver ID completo */}
         {detailsUser && (
-          <div className="modal-overlay">
-            <div className="modal-container">
-              <div className="modal-form" style={{gap:18}}>
-                <h3 style={{textAlign:'center',marginBottom:8,color:'#6366f1'}}>Detalles del usuario</h3>
-                <ul className="admin-users-detailslist">
-                  <li className="admin-users-detailsitem">
+          <div className="users-modal-overlay">
+            <div className="users-modal-container">
+              <div className="users-modal-form users-details-form">
+                <h3 className="users-details-title">Detalles del usuario</h3>
+                <ul className="users-details-list">
+                  <li className="users-details-item">
                     <b>ID:</b> <span style={{color:'#6366f1'}}>{detailsUser.showFullId ? (detailsUser._id || detailsUser.id) : ((detailsUser._id || detailsUser.id)?.slice(0,8)+"...")}</span>
                     {!detailsUser.showFullId && (
-                      <span className="user-id-vermas" style={{marginLeft:8}} onClick={()=>setDetailsUser({...detailsUser,showFullId:true})}>ver completo</span>
+                      <span className="users-id-more" style={{marginLeft:8}} onClick={()=>setDetailsUser({...detailsUser,showFullId:true})}>ver completo</span>
                     )}
                     {detailsUser.showFullId && (
-                      <span className="user-id-vermas" style={{marginLeft:8}} onClick={()=>setDetailsUser({...detailsUser,showFullId:false})}>ocultar</span>
+                      <span className="users-id-more" style={{marginLeft:8}} onClick={()=>setDetailsUser({...detailsUser,showFullId:false})}>ocultar</span>
                     )}
                   </li>
-                  <li className="admin-users-detailsitem"><b>Nombre:</b> {detailsUser.first_name} {detailsUser.last_name}</li>
-                  <li className="admin-users-detailsitem"><b>Email:</b> <span className="user-email">{detailsUser.email}</span></li>
-                  <li className="admin-users-detailsitem"><b>Edad:</b> {detailsUser.age}</li>
-                  <li className="admin-users-detailsitem"><b>Rol:</b> <span className={detailsUser.role==='admin'?'user-role-admin':'user-role-user'}>{detailsUser.role}</span></li>
-                  <li className="admin-users-detailsitem" style={{borderBottom:'none'}}><b>Registrado:</b> {detailsUser.createdAt ? new Date(detailsUser.createdAt).toLocaleString() : ''}</li>
+                  <li className="users-details-item"><b>Nombre:</b> {detailsUser.first_name} {detailsUser.last_name}</li>
+                  <li className="users-details-item"><b>Email:</b> <span className="users-email">{detailsUser.email}</span></li>
+                  <li className="users-details-item"><b>Edad:</b> {detailsUser.age}</li>
+                  <li className="users-details-item"><b>Rol:</b> <span className={detailsUser.role==='admin'?'users-role-admin':'users-role-user'}>{detailsUser.role}</span></li>
+                  <li className="users-details-item"><b>Registrado:</b> {detailsUser.createdAt ? new Date(detailsUser.createdAt).toLocaleString() : ''}</li>
                 </ul>
-                <div className="modal-buttons" style={{justifyContent:'center'}}>
-                  <button style={{
-                    background:'#6366f1',
-                    color:'white',
-                    border:'none',
-                    padding:'10px 28px',
-                    borderRadius:7,
-                    fontWeight:600,
-                    fontSize:'1.08rem',
-                    letterSpacing:'0.5px',
-                    boxShadow:'0 2px 8px #6366f133',
-                    cursor:'pointer',
-                    transition:'background 0.2s'
-                  }}
-                    onClick={() => setDetailsUser(null)}
-                    onMouseOver={e=>e.currentTarget.style.background='#4f46e5'}
-                    onMouseOut={e=>e.currentTarget.style.background='#6366f1'}
-                  >Cerrar</button>
+                <div className="users-modal-buttons users-modal-buttons-center">
+                  <button className="users-btn users-btn-close" onClick={() => setDetailsUser(null)}>Cerrar</button>
                 </div>
               </div>
             </div>
@@ -326,9 +331,9 @@ const Users = () => {
       </div>
       {/* Modal edición usuario */}
       {editUser && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <form className="modal-form" onSubmit={handleEditSave}>
+        <div className="users-modal-overlay">
+          <div className="users-modal-container">
+            <form className="users-modal-form" onSubmit={handleEditSave}>
               <h3>Editar usuario</h3>
               <label>Nombre:
                 <input name="first_name" value={editForm.first_name} onChange={handleEditChange} required />
@@ -345,16 +350,16 @@ const Users = () => {
                   <option value="admin">Admin</option>
                 </select>
               </label>
-              <div className="modal-buttons">
-                <button type="submit" className="save-btn" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
-                <button type="button" className="cancel-btn" onClick={() => setEditUser(null)} disabled={saving}>Cancelar</button>
+              <div className="users-modal-buttons">
+                <button type="submit" className="users-btn users-btn-save" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
+                <button type="button" className="users-btn users-btn-cancel" onClick={() => setEditUser(null)} disabled={saving}>Cancelar</button>
               </div>
-              {modalMsg && <div style={{ marginTop: 8, color: modalMsg.includes("correctamente") ? '#198754' : '#dc3545' }}>{modalMsg}</div>}
+              {modalMsg && <div className={`users-modal-msg ${modalMsg.includes("correctamente") ? "is-success" : "is-error"}`}>{modalMsg}</div>}
             </form>
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 };
 

@@ -8,6 +8,19 @@ export default class TicketDAO {
     return await ticketModel.countDocuments();
   }
   async getAll() {
-    return await ticketModel.find();
+    return await ticketModel
+      .find()
+      .populate("products.product", "nombre precio imagen")
+      .sort({ createdAt: -1 });
+  }
+
+  async setArchived(ticketId, archived) {
+    return await ticketModel
+      .findByIdAndUpdate(
+        ticketId,
+        { archived, archivedAt: archived ? new Date() : null },
+        { new: true }
+      )
+      .populate("products.product", "nombre precio imagen");
   }
 }

@@ -156,4 +156,25 @@ export default class CartsController {
             res.status(500).json({ error: error.message });
         }
     };
+
+    setTicketArchived = async (req, res) => {
+        try {
+            const { ticketId } = req.params;
+            const { archived } = req.body;
+
+            if (typeof archived !== "boolean") {
+                return res.status(400).json({ error: "El campo archived debe ser booleano" });
+            }
+
+            const ticket = await this.ticketService.setTicketArchived(ticketId, archived);
+
+            if (!ticket) {
+                return res.status(404).json({ error: "Pedido no encontrado" });
+            }
+
+            res.status(200).json({ message: archived ? "Pedido archivado" : "Pedido desarchivado", payload: ticket });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    };
 }

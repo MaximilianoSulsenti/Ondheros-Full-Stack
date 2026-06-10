@@ -12,6 +12,7 @@ import { ToastContainer } from "react-toastify";
 import AuthPages from "./pages/AuthPages.jsx";
 import { AuthProvider } from "./Context/AuthContext";
 import Profile from "./pages/Profile.jsx";
+import MyOrders from "./pages/MyOrders.jsx";
 import PrivateRoute from "./routes/privateRoute.jsx";
 import AdminRoute from "./routes/AdminRoute.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
@@ -37,6 +38,7 @@ const App = () => {
               <Route path="/cart" element={<><NavBar /><PrivateRoute><Cart /></PrivateRoute><Footer /></>}/>   
               <Route path="/checkout" element={<><NavBar /><PrivateRoute><Checkout /></PrivateRoute><Footer /></>}/>
               <Route path="/profile" element={<><NavBar /><PrivateRoute><Profile /></PrivateRoute><Footer /></>}/>
+              <Route path="/mis-pedidos" element={<><NavBar /><PrivateRoute><MyOrders /></PrivateRoute><Footer /></>}/>
               <Route path="/auth" element={<><NavBar /><AuthPages /><Footer /></>}/>
               <Route path="/auth/google/success" element={<><NavBar /><AuthGoogleSuccess /><Footer /></>}/>
 

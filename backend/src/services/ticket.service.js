@@ -14,5 +14,9 @@ export default class TicketService {
     async getAllTickets() {
         return await this.repository.getAllTickets();
     }
+
+    async setTicketArchived(ticketId, archived) {
+        return await this.repository.setTicketArchived(ticketId, archived);
+    }
 }
 

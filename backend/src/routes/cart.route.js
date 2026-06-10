@@ -28,6 +28,14 @@ export default function createCartRouter(cartService, productService, ticketServ
       Controller.getAllTickets
     );
 
+    // Archivar/desarchivar ticket (solo admin)
+    router.patch(
+      "/tickets/:ticketId/archive",
+      passport.authenticate("current", { session: false }),
+      authorize("admin"),
+      Controller.setTicketArchived
+    );
+
     // Crear carrito (user y admin)
     router.post("/", passport.authenticate("current", { session: false }), authorize("user", "admin"), Controller.createCart);
 
