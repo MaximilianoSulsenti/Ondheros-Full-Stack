@@ -1,69 +1,138 @@
-# Tienda Ondheros
+# Ondheros FullStack
 
-Proyecto de ecommerce realizado para el Curso de React.js, orientado a la venta de productos temáticos de cómics (remeras, medias, billeteras y más). Permite navegar por categorías, ver detalles de productos, agregar al carrito y realizar compras en línea. Los productos y órdenes se almacenan en Firebase Firestore.
+Aplicacion ecommerce fullstack para venta de indumentaria y accesorios. El proyecto incluye:
 
-## Características
+- Frontend en React + Vite
+- Backend en Node.js + Express
+- Base de datos MongoDB con Mongoose
+- Autenticacion con JWT y Google
+- Checkout con Mercado Pago y flujo manual por WhatsApp
+- Panel admin para gestion de pedidos, pago y entrega
 
-- Listado y filtrado de productos por categoría
-- Detalle de producto
-- Carrito de compras
-- Checkout y generación de orden
-- Actualización de stock en tiempo real
-- Suscripción por email
-- Integración con Firebase Firestore
+## Estructura del proyecto
 
-## Instalación
+- raiz: frontend React
+- backend: API Express
 
-1. Clona el repositorio:
-   ```bash
-   git clone https://github.com/MaximilianoSulsenti/OndHeros-React.js.git
-   cd ondheros
-   ```
+## Funcionalidades principales
 
-2. Instala las dependencias:
-   ```bash
-   npm install
-   ```
+- Catalogo con categorias y detalle de producto
+- Carrito con control de stock
+- Compra y generacion de ticket
+- Estados de pago: pending, approved, in_process, rejected, cancelled
+- Estados de entrega: pending, delivered, cancelled
+- Historial de pedidos para usuario
+- Gestion de pedidos para admin
+- Integracion con Mercado Pago:
+  - creacion de preferencia
+  - retorno al checkout
+  - webhook para sincronizacion de estado en produccion
 
-3. Configura tus variables de entorno en el archivo `.env`:
-   ```
-   VITE_FIREBASE_API_KEY="TU API KEY"
-   VITE_FIREBASE_AUTH_DOMAIN="TU AUTH DOMAIN"
-   VITE_FIREBASE_PROJECT_ID="TU PROJECT ID"
-   VITE_FIREBASE_STORAGE_BUCKET="TU STORAGE BUCKET"
-   VITE_FIREBASE_MESSAGING_SENDER_ID="TU MESSAGING SENDER ID"
-   VITE_FIREBASE_APP_ID="TU APP ID"
-   ```
+## Requisitos
 
-4. Inicia la aplicación:
-   ```bash
-   npm run dev
-   ```
+- Node.js 18 o superior
+- MongoDB Atlas o instancia local
 
-## Uso
+## Configuracion local
 
-- Navega por las categorías desde la barra de navegación.
-- Haz clic en un producto para ver su detalle.
-- Agrega productos al carrito y finaliza la compra desde el checkout.
-- Suscríbete a novedades desde el footer.
+### 1) Instalar dependencias
 
-## Tecnologías
+En la carpeta raiz:
 
-- Vite
-- React
-- React-Router-DOM
-- Firebase Firestore
-- Bootstrap
-- React Toastify
+npm install
 
-## Dominio de sitio:
+En la carpeta backend:
 
-https://ondheros.netlify.app/
+cd backend
+npm install
+
+### 2) Variables de entorno
+
+Frontend (archivo .env en la raiz):
+
+VITE_BACKEND_URL=http://localhost:8080
+VITE_MERCADOPAGO_CHECKOUT_URL=
+
+Backend (archivo .env dentro de backend):
+
+MONGO_URI_DEV=tu_mongo_uri
+MONGO_URI_TEST=tu_mongo_uri_test
+PORT=8080
+SECRET_KEY=tu_secret
+ALLOWED_ORIGINS=http://localhost:5173
+FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:8080
+MERCADOPAGO_ACCESS_TOKEN=tu_access_token
+MERCADOPAGO_WEBHOOK_URL=
+
+Opcionales de email y servicios:
+
+MAIL_USER=
+MAIL_PASS=
+MAIL_FROM=
+SENDGRID_API_KEY=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+### 3) Levantar el proyecto
+
+Backend:
+
+cd backend
+npm run dev
+
+Frontend:
+
+cd ..
+npm run dev
+
+## Scripts utiles
+
+Frontend:
+
+- npm run dev
+- npm run build
+- npm run preview
+
+Backend:
+
+- npm run dev
+- npm run test1
+
+## Deploy recomendado
+
+### Frontend en Vercel
+
+- Root Directory: raiz del repo
+- Build Command: npm run build
+- Output Directory: dist
+- Variable obligatoria:
+  - VITE_BACKEND_URL=https://tu-backend.onrender.com
+
+### Backend en Render
+
+- Root Directory: backend
+- Build Command: npm install
+- Start Command: npm run dev o node src/app.js
+- Variables obligatorias:
+  - MONGO_URI_DEV
+  - SECRET_KEY
+  - ALLOWED_ORIGINS=https://tu-frontend.vercel.app
+  - FRONTEND_URL=https://tu-frontend.vercel.app
+  - BACKEND_URL=https://tu-backend.onrender.com
+  - MERCADOPAGO_ACCESS_TOKEN
+  - MERCADOPAGO_WEBHOOK_URL=https://tu-backend.onrender.com/api/payments/mercadopago/webhook
+
+## Notas sobre Mercado Pago
+
+- En local, el redirect funciona.
+- El webhook real necesita URL publica.
+- En produccion, Render provee URL publica para webhook.
 
 ## Autor
 
-Maximiliano (Ondheros)
-
----
-
-¡Gracias por visitar la tienda Ondheros!
+Maximiliano Sulsenti
