@@ -107,7 +107,7 @@ const httpServer = app.listen(PORT, () =>{
 
 const io = new Server(httpServer);
 
-// rutas con los managers correspondientes
+// rutas 
 app.use("/api/products", createProductRouter(productService, io));
 app.use("/api/carts", createCartRouter(cartService, productService, ticketService));
 app.use("/api/users", createUserRouter(userService));
