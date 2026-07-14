@@ -13,7 +13,7 @@ import AuthPages from "./pages/AuthPages.jsx";
 import { AuthProvider } from "./Context/AuthContext";
 import Profile from "./pages/Profile.jsx";
 import MyOrders from "./pages/MyOrders.jsx";
-import PrivateRoute from "./routes/privateRoute.jsx";
+import PrivateRoute from "./routes/PrivateRoute.jsx";
 import AdminRoute from "./routes/AdminRoute.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
 import Dashboard from "./pages/admin/Dashboard.jsx";
