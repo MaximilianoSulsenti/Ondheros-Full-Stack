@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../Context/AuthContext";
-import { Link } from "react-router-dom";
 import "./Profile.css";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -219,9 +218,6 @@ const Profile = () => {
         <button className="profile-edit-btn" onClick={handleEdit} disabled={saving}>
           {saving ? "Guardando..." : "Editar perfil"}
         </button>
-        <Link to="/mis-pedidos" className="profile-orders-link">
-          Ver mis pedidos
-        </Link>
         {saveMsg && <div className="profile-save-msg">{saveMsg}</div>}
         {/* Modal editar nombre/avatar */}
         {showEdit && (

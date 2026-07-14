@@ -131,66 +131,93 @@ router.post(
         }));
       }
 
-      // Guardar newsletter tanto si es programado como si es inmediato
-      let status = "enviado";
-      let sentAt = null;
-      let scheduledDate = scheduledAt ? new Date(scheduledAt) : null;
-      const now = new Date();
-      if (scheduledDate && scheduledDate > now) {
-        status = "pendiente";
-      } else {
-        sentAt = new Date();
+      if (emails.length === 0) {
+        return res.status(400).json({ status: "error", error: "Debes seleccionar al menos un destinatario válido." });
       }
 
-      try {
-        // Usar solo req.files para adjuntos, ignorar cualquier campo attachments del body
-        // Filtrar solo archivos reales (no strings ni campos de texto)
-        const attachments = (req.files || [])
-          .filter(f => f && typeof f === 'object' && f.originalname && f.mimetype)
-          .map(file => ({
-            filename: file.originalname,
-            type: file.mimetype,
-            size: file.size
-          }));
-        const newsletterData = {
+      // Guardar metadata de adjuntos para historial
+      const attachmentMetadata = (req.files || [])
+        .filter(f => f && typeof f === "object" && f.originalname && f.mimetype)
+        .map(file => ({
+          filename: file.originalname,
+          type: file.mimetype,
+          size: file.size
+        }));
+
+      const scheduledDate = scheduledAt ? new Date(scheduledAt) : null;
+      const now = new Date();
+
+      // Si es programado, solo persiste como pendiente.
+      if (scheduledDate && scheduledDate > now) {
+        await NewsletterUltra.create({
           subject,
           text,
           html,
-          attachments,
+          attachments: attachmentMetadata,
           sentTo: emails,
           sentBy: req.user?.email || req.user?._id?.toString() || "admin",
-          sentAt,
+          sentAt: null,
           scheduledAt: scheduledDate,
-          status
-        };
-        const created = await NewsletterUltra.create(newsletterData);
-        // Enviar email solo si es inmediato (no programado)
-        if (status === "enviado") {
-          // Preparar adjuntos para SendGrid (content base64)
-          const sgAttachments = (req.files || []).map(file => ({
-            content: file.buffer.toString("base64"),
-            filename: file.originalname,
-            type: file.mimetype,
-            disposition: "attachment"
-          }));
-          for (const to of emails) {
-            if (to) {
-              await sendEmail({
-                to,
-                subject,
-                text,
-                html: html || `<p>${text}</p>`,
-                attachments: sgAttachments.length > 0 ? sgAttachments : undefined
-              });
-            }
-          }
-        }
-      } catch (err) {
-        console.error("[NEWSLETTER] ERROR AL GUARDAR:", err);
-        return res.status(500).json({ status: "error", error: err.message, stack: err.stack });
+          status: "pendiente"
+        });
+
+        return res.json({ status: "success", message: "Newsletter programado correctamente." });
       }
 
-      res.json({ status: "success", message: status === "pendiente" ? "Newsletter programado correctamente." : "Newsletter enviado a todos los usuarios." });
+      // Envío inmediato: validar envío real por destinatario.
+      const sgAttachments = (req.files || []).map(file => ({
+        content: file.buffer.toString("base64"),
+        filename: file.originalname,
+        type: file.mimetype,
+        disposition: "attachment"
+      }));
+
+      const failedRecipients = [];
+
+      for (const to of emails) {
+        if (!to) continue;
+
+        const result = await sendEmail({
+          to,
+          subject,
+          text,
+          html: html || `<p>${text}</p>`,
+          attachments: sgAttachments.length > 0 ? sgAttachments : undefined
+        });
+
+        if (!result?.ok) {
+          failedRecipients.push({
+            email: to,
+            code: result?.code || null,
+            message: result?.message || "Error desconocido"
+          });
+        }
+      }
+
+      const status = failedRecipients.length === 0 ? "enviado" : "fallido";
+      const sentAt = failedRecipients.length === 0 ? new Date() : null;
+
+      await NewsletterUltra.create({
+        subject,
+        text,
+        html,
+        attachments: attachmentMetadata,
+        sentTo: emails,
+        sentBy: req.user?.email || req.user?._id?.toString() || "admin",
+        sentAt,
+        scheduledAt: null,
+        status
+      });
+
+      if (failedRecipients.length > 0) {
+        return res.status(502).json({
+          status: "error",
+          error: "No se pudo enviar el newsletter a uno o más destinatarios.",
+          failedRecipients
+        });
+      }
+
+      return res.json({ status: "success", message: "Newsletter enviado a todos los usuarios." });
     } catch (error) {
       res.status(500).json({ status: "error", error: error.message });
     }

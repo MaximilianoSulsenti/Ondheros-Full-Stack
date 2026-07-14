@@ -1,5 +1,15 @@
 import { useState, useEffect, createContext } from "react";
 
+const getCartKey = () => {
+    try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const uid = user?._id || user?.id;
+        return uid ? `cartId_${uid}` : "cartId";
+    } catch {
+        return "cartId";
+    }
+};
+
 export const CarritoContext = createContext({
     carrito: [],
     total: 0,
@@ -17,7 +27,7 @@ export const CarritoProvider = ({ children }) => {
     const [total, setTotal] = useState(0);
     const [cantidadTotal, setCantidadTotal] = useState(0);
     const [cartId, setCartId] = useState(() => {
-        const id = localStorage.getItem("cartId");
+        const id = localStorage.getItem(getCartKey());
         return id && id !== "undefined" ? id : null;
     });
 
@@ -45,7 +55,7 @@ export const CarritoProvider = ({ children }) => {
             const data = await res.json();
             const newCartId = data.payload?._id;
             setCartId(newCartId);
-            localStorage.setItem("cartId", newCartId);
+            localStorage.setItem(getCartKey(), newCartId);
             return newCartId;
         } catch (error) {
             console.error(error);
@@ -132,17 +142,19 @@ export const CarritoProvider = ({ children }) => {
         }
     };
 
-    // Vaciar carrito
+    // Vaciar carrito (usa PUT con array vacío - accesible para 'user' y 'admin')
     const vaciarCarrito = async () => {
         if (!cartId) return;
         try {
             const token = localStorage.getItem("token");
             const res = await fetch(`${backendUrl}/api/carts/${cartId}`, {
-                method: "DELETE",
+                method: "PUT",
                 credentials: "include",
                 headers: {
-                    "Authorization": `Bearer ${token}`
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
                 },
+                body: JSON.stringify({ products: [] })
             });
             if (!res.ok) throw new Error("No se pudo vaciar el carrito");
             setCarrito([]);
@@ -153,15 +165,24 @@ export const CarritoProvider = ({ children }) => {
         }
     };
 
+    // Limpiar estado local del carrito (sin llamada al backend)
+    const limpiarCarritoLocal = () => {
+        setCarrito([]);
+        setCantidadTotal(0);
+        setTotal(0);
+    };
+
     return (
         <CarritoContext.Provider
             value={{
                 carrito,
                 total,
                 cantidadTotal,
+                cartId,
                 agregarAlCarrito,
                 eliminarProducto,
                 vaciarCarrito,
+                limpiarCarritoLocal,
                 cargarCarrito,
             }}
         >

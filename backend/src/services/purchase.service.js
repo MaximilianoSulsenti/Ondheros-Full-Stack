@@ -25,10 +25,10 @@ export default class PurchaseService {
         purchased.push({
           product: product._id,
           quantity: item.quantity,
-          price: product.price
+          price: product.precio
         });
 
-        total += product.price * item.quantity;
+        total += product.precio * item.quantity;
       } else {
         notPurchased.push(item);
       }

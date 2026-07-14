@@ -114,6 +114,35 @@
   cursor: pointer;
 }
 
+.my-orders-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.my-orders-pay {
+  background: #059669;
+  border-color: #059669;
+  color: #ffffff;
+}
+
+.my-orders-pay:hover {
+  background: #047857;
+  border-color: #047857;
+}
+
+.my-orders-delete {
+  background: #ffffff;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+.my-orders-delete:hover {
+  background: #fef2f2;
+}
+
 .my-orders-products li {
   display: flex;
   justify-content: space-between;
@@ -167,5 +196,9 @@
   .my-orders-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .my-orders-actions-right {
+    justify-content: stretch;
   }
 }

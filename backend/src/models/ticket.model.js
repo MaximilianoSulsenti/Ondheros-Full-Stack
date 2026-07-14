@@ -7,6 +7,21 @@ const ticketSchema = new mongoose.Schema ({
     purchase_datetime: {type: Date, default: Date.now},
     amount: {type: Number, required: true},
     purchaser: {type: String, required: true},
+    paymentStatus: {
+        type: String,
+        enum: ["pending", "approved", "in_process", "rejected", "cancelled", "unknown"],
+        default: "pending"
+    },
+    paymentProvider: { type: String, default: "mercadopago" },
+    paymentId: { type: String, default: null },
+    paymentStatusDetail: { type: String, default: null },
+    paymentStatusUpdatedAt: { type: Date, default: null },
+    fulfillmentStatus: {
+        type: String,
+        enum: ["pending", "delivered", "cancelled"],
+        default: "pending"
+    },
+    fulfillmentStatusUpdatedAt: { type: Date, default: null },
     archived: { type: Boolean, default: false },
     archivedAt: { type: Date, default: null },
     products: [

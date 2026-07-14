@@ -3,6 +3,16 @@ const AuthContext = createContext();
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
+const clearUserCartKey = () => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const uid = user?._id || user?.id;
+    if (uid) localStorage.removeItem(`cartId_${uid}`);
+  } catch {}
+  // limpiar también la clave genérica por si quedó de versiones anteriores
+  localStorage.removeItem("cartId");
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -89,6 +99,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    clearUserCartKey();
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("googleName");

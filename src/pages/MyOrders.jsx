@@ -4,11 +4,46 @@ import "./MyOrders.css";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
+const getPaymentLabel = (status, provider) => {
+  if (provider === "whatsapp" && status === "in_process") {
+    return "Pedido enviado por WhatsApp";
+  }
+  if (provider === "whatsapp" && status === "pending") {
+    return "Pendiente de enviar por WhatsApp";
+  }
+  switch (status) {
+    case "approved":
+      return "Pagado";
+    case "pending":
+      return "Pendiente";
+    case "rejected":
+      return "Rechazado";
+    case "in_process":
+      return "En proceso";
+    case "cancelled":
+      return "Cancelado";
+    default:
+      return "Sin estado";
+  }
+};
+
+const getFulfillmentLabel = (status) => {
+  switch (status) {
+    case "delivered":
+      return "Entregado";
+    case "cancelled":
+      return "Cancelado";
+    default:
+      return "Pendiente";
+  }
+};
+
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
   const [expanded, setExpanded] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionLoadingByCode, setActionLoadingByCode] = useState({});
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -51,6 +86,73 @@ const MyOrders = () => {
     setExpanded((prev) => ({ ...prev, [orderId]: !prev[orderId] }));
   };
 
+  const isRetryablePayment = (status) => ["pending", "rejected", "cancelled", "unknown"].includes(status);
+
+  const handlePayNow = async (ticketCode) => {
+    setError("");
+    if (!ticketCode) return;
+
+    setActionLoadingByCode((prev) => ({ ...prev, [ticketCode]: true }));
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${backendUrl}/api/payments/mercadopago/preference`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ ticketCode })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "No se pudo iniciar el pago");
+      }
+
+      const initPoint = data?.payload?.initPoint || data?.payload?.sandboxInitPoint;
+      if (!initPoint) {
+        throw new Error("Mercado Pago no devolvió una URL de pago");
+      }
+
+      window.location.href = initPoint;
+    } catch (err) {
+      setError(err.message || "Error al iniciar el pago");
+    } finally {
+      setActionLoadingByCode((prev) => ({ ...prev, [ticketCode]: false }));
+    }
+  };
+
+  const handleDeleteOrder = async (ticketCode) => {
+    setError("");
+    if (!ticketCode) return;
+
+    const confirmDelete = window.confirm("¿Eliminar este pedido pendiente/rechazado?");
+    if (!confirmDelete) return;
+
+    setActionLoadingByCode((prev) => ({ ...prev, [ticketCode]: true }));
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${backendUrl}/api/payments/mercadopago/tickets/${ticketCode}/cancel`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "No se pudo eliminar el pedido");
+      }
+
+      setOrders((prev) => prev.filter((order) => order.code !== ticketCode));
+    } catch (err) {
+      setError(err.message || "Error al eliminar el pedido");
+    } finally {
+      setActionLoadingByCode((prev) => ({ ...prev, [ticketCode]: false }));
+    }
+  };
+
   if (loading) return <div className="my-orders-state">Cargando tus pedidos...</div>;
   if (error) return <div className="my-orders-state my-orders-error">{error}</div>;
 
@@ -58,8 +160,8 @@ const MyOrders = () => {
     <section className="my-orders-page">
       <header className="my-orders-header">
         <h1>Mis pedidos</h1>
-        <Link to="/profile" className="my-orders-back">
-          Volver al perfil
+        <Link to="/" className="my-orders-back">
+          Volver al inicio
         </Link>
       </header>
 
@@ -88,6 +190,8 @@ const MyOrders = () => {
             const products = Array.isArray(order.products) ? order.products : [];
             const itemsCount = products.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
             const isExpanded = Boolean(expanded[orderId]);
+            const canRetryPayment = isRetryablePayment(order.paymentStatus);
+            const isActionLoading = Boolean(actionLoadingByCode[order.code]);
             return (
               <article className="my-orders-card" key={orderId}>
                 <div className="my-orders-card-head">
@@ -100,13 +204,37 @@ const MyOrders = () => {
 
                 <div className="my-orders-actions">
                   <span>{itemsCount} item(s)</span>
-                  <button
-                    type="button"
-                    className="my-orders-toggle"
-                    onClick={() => toggleExpanded(orderId)}
-                  >
-                    {isExpanded ? "Ocultar detalle" : "Ver detalle"}
-                  </button>
+                  <span>Pago: {getPaymentLabel(order.paymentStatus, order.paymentProvider)}</span>
+                  <span>Entrega: {getFulfillmentLabel(order.fulfillmentStatus)}</span>
+                  <div className="my-orders-actions-right">
+                    {canRetryPayment && (
+                      <>
+                        <button
+                          type="button"
+                          className="my-orders-toggle my-orders-pay"
+                          onClick={() => handlePayNow(order.code)}
+                          disabled={isActionLoading}
+                        >
+                          {isActionLoading ? "Procesando..." : "Pagar ahora"}
+                        </button>
+                        <button
+                          type="button"
+                          className="my-orders-toggle my-orders-delete"
+                          onClick={() => handleDeleteOrder(order.code)}
+                          disabled={isActionLoading}
+                        >
+                          Eliminar
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      className="my-orders-toggle"
+                      onClick={() => toggleExpanded(orderId)}
+                    >
+                      {isExpanded ? "Ocultar detalle" : "Ver detalle"}
+                    </button>
+                  </div>
                 </div>
 
                 {isExpanded && (

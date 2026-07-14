@@ -5,10 +5,13 @@ import CartItem from "../CartItem/CartItem"
 import "./Cart.css"
 import { Loader } from "../Loader/Loader"
 import { toast } from "react-toastify"
+import { useAuth } from "../../Context/AuthContext"
 
 const Cart = () => {
 
   const { carrito, total, cantidadTotal, vaciarCarrito } = useContext(CarritoContext)
+  const { user } = useAuth()
+  const isAdmin = user?.role === "admin"
   const [loading, setLoading] = useState(false)
 
   const handleVaciarCarrito = async () => {
@@ -69,7 +72,11 @@ const Cart = () => {
             <h2>Cantidad Productos: {cantidadTotal}</h2>
             <h3>Total: ${total}</h3>
             <button onClick={handleVaciarCarrito} className="vaciar-carrito" disabled={loading}>Vaciar Carrito</button>
-            <Link to="/checkout" className="finalizar-compra">Finalizar Compra</Link>
+            {isAdmin ? (
+              <p className="cart-admin-notice">Los administradores no pueden realizar compras.</p>
+            ) : (
+              <Link to="/checkout" className="finalizar-compra">Finalizar Compra</Link>
+            )}
           </div>
         </>
       )}

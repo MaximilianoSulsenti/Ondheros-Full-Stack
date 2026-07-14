@@ -47,7 +47,7 @@ export default class CartService {
         return this.cartsRepository.clearCart(cartId);
     }
     
-    async purchaseCart(cid, purchaser) {
+    async purchaseCart(cid, purchaser, paymentMethod = "mercadopago") {
         const cart = await this.cartsRepository.getCartById(cid);
 
         if (!cart) throw new Error("Carrito no existe");
@@ -61,7 +61,14 @@ export default class CartService {
         const processedProducts = [];
 
         for (const item of cart.productos) {
-            const productId = item.product._id || item.product;
+            const productRef = item?.product;
+            const productId = productRef?._id || productRef;
+
+            if (!productId) {
+                notProcessed.push(item);
+                continue;
+            }
+
             const product = await this.productsRepository.getById(productId);
 
             if (!product) {
@@ -71,7 +78,7 @@ export default class CartService {
 
             const adapted = adaptProduct(product);
             const price = Number(adapted.price);
-            const qty = Number(item.quantity);
+            const qty = Number(item?.quantity);
 
             if (isNaN(price) || isNaN(qty)) {
                 notProcessed.push(item);
@@ -107,6 +114,9 @@ export default class CartService {
             purchase_datetime: new Date(),
             amount: totalAmount,
             purchaser,
+            paymentProvider: paymentMethod === "whatsapp" ? "whatsapp" : "mercadopago",
+            paymentStatus: paymentMethod === "whatsapp" ? "pending" : "pending",
+            paymentStatusDetail: paymentMethod === "whatsapp" ? "awaiting_whatsapp_confirmation" : null,
             products : processedProducts
         });
 

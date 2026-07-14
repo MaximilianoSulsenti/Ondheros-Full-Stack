@@ -39,6 +39,7 @@ import createViewsRouter from "./routes/view.route.js";
 import createUserRouter from "./routes/user.route.js";
 import sessionRouter from "./routes/sessions.route.js";
 import passwordResetRouter from "./routes/passwordReset.route.js";
+import createPaymentRouter from "./routes/payment.route.js";
 
 
 // Definiciones de __dirname y __filename en ES Modules
@@ -115,4 +116,5 @@ app.use("/api/sessions", sessionRouter);
 app.use("/api/password", passwordResetRouter);
 app.use("/api/auth/google", googleAuthRouter);
 app.use("/api/admin", emailAdminRoute);
+app.use("/api/payments", createPaymentRouter(ticketService));
 

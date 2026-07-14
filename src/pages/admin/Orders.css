@@ -182,6 +182,24 @@
   background: #ecfdf5;
 }
 
+.orders-mark-paid {
+  border-color: #10b981;
+  color: #ffffff;
+  background: #059669;
+}
+
+.orders-mark-cancelled {
+  border-color: #ef4444;
+  color: #991b1b;
+  background: #fef2f2;
+}
+
+.orders-mark-delivered {
+  border-color: #2563eb;
+  color: #ffffff;
+  background: #2563eb;
+}
+
 .orders-detail {
   margin-top: 10px;
   background: #f9fafb;

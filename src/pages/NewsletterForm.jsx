@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
 import "./NewsletterForm.css";
 
 // Helpers para favoritos en localStorage
@@ -13,6 +14,8 @@ function getFavorites() {
 function saveFavorites(favs) {
   localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
 }
+
+const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -56,6 +59,8 @@ export default function NewsletterForm() {
         if (!selectedRole) {
           setEmails([]);
           setSelectedEmails([]);
+          setSearch("");
+          setFilter("activos-verificados");
           return;
         }
         const fetchEmails = async () => {
@@ -82,6 +87,14 @@ export default function NewsletterForm() {
         };
         fetchEmails();
       }, [selectedRole, filter, debouncedSearch]);
+
+      useEffect(() => {
+        if (selectedRole) {
+          setSearch("");
+          setFilter("activos-verificados");
+          setSelectedEmails([]);
+        }
+      }, [selectedRole?.value]);
 
     // Archivos adjuntos
     const [attachments, setAttachments] = useState([]);
@@ -289,13 +302,13 @@ export default function NewsletterForm() {
                 className="newsletter-mini-input"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                disabled={!selectedRole || emails.length === 0}
+                disabled={!selectedRole}
               />
               <select
                 className="newsletter-mini-select"
                 value={filter}
                 onChange={e => setFilter(e.target.value)}
-                disabled={!selectedRole || emails.length === 0}
+                disabled={!selectedRole}
               >
                 <option value="">Todos</option>
                 <option value="activos">Solo activos</option>
@@ -304,7 +317,7 @@ export default function NewsletterForm() {
                 {/* Agrega más filtros según el backend */}
               </select>
             </div>
-            <Select
+            <CreatableSelect
               options={emails}
               value={selectedEmails}
               onChange={(vals) => {
@@ -324,8 +337,26 @@ export default function NewsletterForm() {
                   setSelectedEmails([]);
                 }
               }}
+              onCreateOption={(inputValue) => {
+                const normalized = inputValue.trim().toLowerCase();
+                if (!isValidEmail(normalized)) return;
+                const existsInSelected = selectedEmails.some(e => String(e.value).toLowerCase() === normalized);
+                if (existsInSelected) return;
+                setSelectedEmails((prev) => [...prev, { value: normalized, label: normalized }]);
+              }}
               isMulti
-              isDisabled={!selectedRole || emails.length === 0}
+              isSearchable
+              isClearable
+              backspaceRemovesValue
+              isDisabled={!selectedRole}
+              isValidNewOption={(inputValue, _, options) => {
+                const normalized = inputValue.trim().toLowerCase();
+                if (!isValidEmail(normalized)) return false;
+                const existsInOptions = options.some(o => String(o.value).toLowerCase() === normalized);
+                const existsInSelected = selectedEmails.some(o => String(o.value).toLowerCase() === normalized);
+                return !existsInOptions && !existsInSelected;
+              }}
+              formatCreateLabel={(inputValue) => `Agregar: ${inputValue}`}
               placeholder={selectedRole ? (emails.length ? "Seleccionar emails..." : "Sin emails para este rol") : "Selecciona un rol primero"}
               noOptionsMessage={() => "Sin emails"}
               classNamePrefix="newsletter-select"

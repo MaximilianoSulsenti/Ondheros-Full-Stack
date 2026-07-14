@@ -46,6 +46,7 @@ const NavBar = () => {
                   className="user-dropdown"
                 >
                   <NavDropdown.Item as={Link} to="/profile">Perfil</NavDropdown.Item>
+                  <NavDropdown.Item as={Link} to="/mis-pedidos">Mis pedidos</NavDropdown.Item>
                   {user?.role === "admin" && (
                     <NavDropdown.Item as={Link} to="/admin">Panel Admin</NavDropdown.Item>
                   )}

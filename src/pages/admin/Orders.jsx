@@ -3,6 +3,40 @@ import "./Orders.css";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
+const getPaymentLabel = (status, provider) => {
+  if (provider === "whatsapp" && status === "in_process") {
+    return "Pedido enviado por WhatsApp";
+  }
+  if (provider === "whatsapp" && status === "pending") {
+    return "Pendiente de enviar por WhatsApp";
+  }
+  switch (status) {
+    case "approved":
+      return "Pagado";
+    case "pending":
+      return "Pendiente";
+    case "rejected":
+      return "Rechazado";
+    case "in_process":
+      return "En proceso";
+    case "cancelled":
+      return "Cancelado";
+    default:
+      return "Sin estado";
+  }
+};
+
+const getFulfillmentLabel = (status) => {
+  switch (status) {
+    case "delivered":
+      return "Entregado";
+    case "cancelled":
+      return "Cancelado";
+    default:
+      return "Pendiente";
+  }
+};
+
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [query, setQuery] = useState("");
@@ -11,6 +45,7 @@ const Orders = () => {
   const [activePreset, setActivePreset] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [archivingMap, setArchivingMap] = useState({});
+  const [paymentUpdateMap, setPaymentUpdateMap] = useState({});
   const [expanded, setExpanded] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -209,6 +244,66 @@ const Orders = () => {
     }
   };
 
+  const handleWhatsappStatusUpdate = async (order, paymentStatus, paymentStatusDetail) => {
+    const ticketCode = order.code;
+    if (!ticketCode) return;
+
+    setPaymentUpdateMap((prev) => ({ ...prev, [ticketCode]: true }));
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${backendUrl}/api/payments/whatsapp/admin/tickets/${ticketCode}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ paymentStatus, paymentStatusDetail })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "No se pudo actualizar el estado del pago");
+
+      const updatedTicket = data.payload;
+      setOrders((prev) => prev.map((currentOrder) => (currentOrder._id === updatedTicket._id ? updatedTicket : currentOrder)));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setPaymentUpdateMap((prev) => ({ ...prev, [ticketCode]: false }));
+    }
+  };
+
+  const handleFulfillmentUpdate = async (order, fulfillmentStatus) => {
+    const ticketCode = order.code;
+    if (!ticketCode) return;
+
+    setPaymentUpdateMap((prev) => ({ ...prev, [ticketCode]: true }));
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${backendUrl}/api/payments/admin/tickets/${ticketCode}/fulfillment`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ fulfillmentStatus })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "No se pudo actualizar la entrega");
+
+      const updatedTicket = data.payload;
+      setOrders((prev) => prev.map((currentOrder) => (currentOrder._id === updatedTicket._id ? updatedTicket : currentOrder)));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setPaymentUpdateMap((prev) => ({ ...prev, [ticketCode]: false }));
+    }
+  };
+
   if (loading) return <div className="orders-loading">Cargando pedidos...</div>;
   if (error) return <div className="orders-error">Error: {error}</div>;
 
@@ -302,6 +397,8 @@ const Orders = () => {
             const isOpen = Boolean(expanded[orderId]);
             const items = Array.isArray(order.products) ? order.products : [];
             const itemsCount = items.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
+            const isWhatsappOrder = order.paymentProvider === "whatsapp";
+            const isUpdatingPayment = Boolean(paymentUpdateMap[order.code]);
 
             return (
               <article className="orders-card" key={orderId}>
@@ -319,10 +416,42 @@ const Orders = () => {
 
                 <div className="orders-card-row">
                   <span>{itemsCount} item(s)</span>
+                  <span>Pago: {getPaymentLabel(order.paymentStatus, order.paymentProvider)}</span>
+                  <span>Entrega: {getFulfillmentLabel(order.fulfillmentStatus)}</span>
                   <div className="orders-actions-inline">
                     <button className="orders-toggle" onClick={() => toggleExpanded(orderId)}>
                       {isOpen ? "Ocultar detalle" : "Ver detalle"}
                     </button>
+                    {isWhatsappOrder && order.paymentStatus !== "approved" && (
+                      <button
+                        type="button"
+                        className="orders-toggle orders-mark-paid"
+                        onClick={() => handleWhatsappStatusUpdate(order, "approved", "whatsapp_payment_confirmed")}
+                        disabled={isUpdatingPayment}
+                      >
+                        {isUpdatingPayment ? "Guardando..." : "Marcar pagado"}
+                      </button>
+                    )}
+                    {isWhatsappOrder && order.paymentStatus !== "cancelled" && order.paymentStatus !== "approved" && (
+                      <button
+                        type="button"
+                        className="orders-toggle orders-mark-cancelled"
+                        onClick={() => handleWhatsappStatusUpdate(order, "cancelled", "whatsapp_order_cancelled")}
+                        disabled={isUpdatingPayment}
+                      >
+                        Cancelar pedido
+                      </button>
+                    )}
+                    {order.paymentStatus === "approved" && order.fulfillmentStatus !== "delivered" && (
+                      <button
+                        type="button"
+                        className="orders-toggle orders-mark-delivered"
+                        onClick={() => handleFulfillmentUpdate(order, "delivered")}
+                        disabled={isUpdatingPayment}
+                      >
+                        {isUpdatingPayment ? "Guardando..." : "Marcar entregado"}
+                      </button>
+                    )}
                     <button
                       type="button"
                       className={`orders-toggle ${order.archived ? "orders-unarchive" : "orders-archive"}`}

@@ -18,5 +18,21 @@ export default class TicketService {
     async setTicketArchived(ticketId, archived) {
         return await this.repository.setTicketArchived(ticketId, archived);
     }
+
+    async getTicketByCodeAndPurchaser(code, purchaser) {
+        return await this.repository.getTicketByCodeAndPurchaser(code, purchaser);
+    }
+
+    async setPaymentStatusByCodeAndPurchaser(code, purchaser, update) {
+        return await this.repository.setPaymentStatusByCodeAndPurchaser(code, purchaser, update);
+    }
+
+    async setPaymentStatusByCode(code, update) {
+        return await this.repository.setPaymentStatusByCode(code, update);
+    }
+
+    async setFulfillmentStatusByCode(code, fulfillmentStatus) {
+        return await this.repository.setFulfillmentStatusByCode(code, fulfillmentStatus);
+    }
 }
 

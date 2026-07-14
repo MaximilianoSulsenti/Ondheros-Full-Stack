@@ -10,8 +10,8 @@ export default class CartsController {
             const userEmail = req.user?.email;
             if (!userEmail) return res.status(401).json({ error: "No autenticado" });
             const tickets = await this.ticketService.getAllTickets();
-            // Filtrar por email del usuario
-            const myTickets = tickets.filter(t => t.purchaser === userEmail);
+            // Filtrar por email del usuario y excluir los archivados
+            const myTickets = tickets.filter(t => t.purchaser === userEmail && !t.archived);
             res.status(200).json({ payload: myTickets });
         } catch (error) {
             res.status(500).json({ error: error.message });
@@ -122,8 +122,9 @@ export default class CartsController {
         try {
             const { cartId } = req.params;
             const purchaser = req.user?.email || "test@purchase.com";
+            const paymentMethod = req.body?.paymentMethod === "whatsapp" ? "whatsapp" : "mercadopago";
 
-            const result = await this.cartService.purchaseCart(cartId, purchaser);
+            const result = await this.cartService.purchaseCart(cartId, purchaser, paymentMethod);
 
             return res.status(200).json({
                 status: "success",
